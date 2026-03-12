@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Scam Awareness System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container-fluid">
+            <!-- Sidebar Toggle Button (like VS Code) -->
+            <button class="sidebar-toggle-btn" id="sidebarToggle" title="Toggle Sidebar (Ctrl+B)">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt"></i> ScamGuard
+            </a>
+            
+            <button class="navbar-toggler d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#mobileSidebar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header d-md-none">
+                <h5>Navigation</h5>
+                <button type="button" class="btn-close" data-bs-toggle="collapse" data-bs-target="#mobileSidebar"></button>
+            </div>
+            
+            <div class="sidebar-content">
+                <h6 class="sidebar-heading">
+                    <span>Main Menu</span>
+                </h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/awareness">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Awareness</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/quiz">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Quiz</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <h6 class="sidebar-heading">
+                    <span>Tools</span>
+                </h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/checker">
+                            <i class="fas fa-search"></i>
+                            <span>Scam Checker</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ai-detector">
+                            <i class="fas fa-robot"></i>
+                            <span>AI Detector</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <h6 class="sidebar-heading">
+                    <span>Help & Support</span>
+                </h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/resources">
+                            <i class="fas fa-book"></i>
+                            <span>Resources</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/report">
+                            <i class="fas fa-flag"></i>
+                            <span>Report Scam</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="sidebar-stats">
+                    <div class="stat-box">
+                        <h6>Quick Stats</h6>
+                        <p class="mb-1"><i class="fas fa-shield-alt"></i> 10 Scam Types</p>
+                        <p class="mb-1"><i class="fas fa-brain"></i> 60 Quiz Questions</p>
+                        <p class="mb-0"><i class="fas fa-robot"></i> AI Detection</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <main class="main-content" id="mainContent">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <footer class="bg-primary text-white mt-5 py-4">
+        <div class="container text-center">
+            <p class="mb-2">&copy; 2026 ScamGuard - Online Scam Awareness System</p>
+            <p class="mb-0">
+                <small>Stay safe online. Report suspicious activities.</small>
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar toggle functionality (like VS Code)
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const footer = document.querySelector('footer');
+            
+            // Check if sidebar state is saved in localStorage
+            const sidebarHidden = localStorage.getItem('sidebarHidden') === 'true';
+            
+            // Apply saved state on page load
+            if (sidebarHidden) {
+                sidebar.classList.add('hidden');
+                mainContent.classList.add('expanded');
+                if (footer) footer.classList.add('expanded');
+                toggleBtn.classList.add('active');
+            }
+            
+            // Toggle sidebar on button click
+            toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                sidebar.classList.toggle('hidden');
+                mainContent.classList.toggle('expanded');
+                if (footer) footer.classList.toggle('expanded');
+                toggleBtn.classList.toggle('active');
+                
+                // Save state to localStorage
+                const isHidden = sidebar.classList.contains('hidden');
+                localStorage.setItem('sidebarHidden', isHidden);
+            });
+            
+            // Keyboard shortcut: Ctrl+B (like VS Code)
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'b') {
+                    e.preventDefault();
+                    toggleBtn.click();
+                }
+            });
+            
+            // Highlight active menu item based on current page
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            
+            navLinks.forEach(link => {
+                const linkPath = new URL(link.href).pathname;
+                
+                // Remove active class from all links
+                link.classList.remove('active');
+                
+                // Add active class to current page link
+                if (currentPath === linkPath || 
+                    (currentPath.startsWith('/awareness/') && linkPath === '/awareness') ||
+                    (currentPath === '/' && linkPath === '/')) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Mobile menu toggle
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            
+            if (navbarToggler && sidebar) {
+                navbarToggler.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+                
+                // Close sidebar when clicking on a link (mobile)
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth < 768) {
+                            sidebar.classList.remove('show');
+                        }
+                    });
+                });
+                
+                // Close sidebar when clicking outside (mobile)
+                document.addEventListener('click', function(event) {
+                    if (window.innerWidth < 768) {
+                        if (!sidebar.contains(event.target) && !navbarToggler.contains(event.target)) {
+                            sidebar.classList.remove('show');
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}{{ scam.title }} - Scam Awareness{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/awareness">Awareness</a></li>
+                <li class="breadcrumb-item active">{{ scam.title }}</li>
+            </ol>
+        </nav>
+        <h1 class="display-5 fw-bold">{{ scam.title }}</h1>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Video Section -->
+            <div class="detail-card mb-4">
+                <h3><i class="fas fa-video text-primary"></i> Educational Video</h3>
+                {% if video_available %}
+                <div class="video-container">
+                    <video controls class="w-100" poster="/static/images/video-placeholder.jpg">
+                        <source src="/static/videos/{{ scam_type }}.mp4" type="video/mp4">
+                        <source src="/static/videos/{{ scam_type }}.webm" type="video/webm">
+                        Your browser does not support the video tag.
+                    </video>
+                    <p class="text-muted small mt-2">
+                        <i class="fas fa-info-circle"></i> Watch this video to learn more about {{ scam.title }}
+                    </p>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-clock"></i> <strong>Video Coming Soon!</strong>
+                    <p class="mb-0 mt-2">We're currently preparing an educational video about {{ scam.title }}. Check back soon!</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="detail-card mb-4">
+                <h3><i class="fas fa-info-circle text-primary"></i> What is it?</h3>
+                <p class="lead">{{ scam.description }}</p>
+            </div>
+
+            <div class="detail-card mb-4">
+                <h3><i class="fas fa-exclamation-triangle text-danger"></i> Warning Signs</h3>
+                <p>Be alert if you notice any of these red flags:</p>
+                <ul class="warning-list">
+                    {% for sign in scam.warning_signs %}
+                    <li><i class="fas fa-chevron-right text-danger"></i> {{ sign }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="detail-card mb-4">
+                <h3><i class="fas fa-shield-alt text-success"></i> How to Protect Yourself</h3>
+                <p>Follow these prevention tips:</p>
+                <ul class="prevention-list">
+                    {% for tip in scam.prevention %}
+                    <li><i class="fas fa-check text-success"></i> {{ tip }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Practice Quiz Section -->
+            <div class="detail-card mb-4">
+                <h3><i class="fas fa-brain text-primary"></i> Practice Quiz</h3>
+                <p>Test your knowledge about {{ scam.title }} with these 10 questions:</p>
+                
+                <div id="practice-quiz-container">
+                    <div id="practice-quiz-intro">
+                        <button id="start-practice-quiz" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play"></i> Start Practice Quiz
+                        </button>
+                    </div>
+                    
+                    <div id="practice-quiz-questions" style="display: none;">
+                        <div class="progress mb-3">
+                            <div id="practice-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        
+                        <div id="practice-question-container"></div>
+                        
+                        <div class="d-flex justify-content-between mt-3">
+                            <button id="practice-prev-btn" class="btn btn-outline-secondary" style="display: none;">
+                                <i class="fas fa-arrow-left"></i> Previous
+                            </button>
+                            <button id="practice-next-btn" class="btn btn-primary" style="display: none;">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <button id="practice-submit-btn" class="btn btn-success" style="display: none;">
+                                <i class="fas fa-check"></i> Submit
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="practice-quiz-results" style="display: none;">
+                        <div id="practice-score-display" class="text-center mb-3"></div>
+                        <div id="practice-results-details" class="mt-4"></div>
+                        <button id="practice-retake-btn" class="btn btn-primary">
+                            <i class="fas fa-redo"></i> Retake Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="sidebar-card mb-4">
+                <h5><i class="fas fa-question-circle"></i> Test Your Knowledge</h5>
+                <p>Think you can spot this scam? Take our quiz to find out!</p>
+                <a href="/quiz" class="btn btn-success w-100">Take Quiz</a>
+            </div>
+
+            <div class="sidebar-card mb-4">
+                <h5><i class="fas fa-search"></i> Check Suspicious Content</h5>
+                <p>Use our scam checker to analyze emails, URLs, or messages.</p>
+                <a href="/checker" class="btn btn-warning w-100">Scam Checker</a>
+            </div>
+
+            <div class="sidebar-card alert-card">
+                <h5><i class="fas fa-flag"></i> Report a Scam</h5>
+                <p>If you've encountered this scam, report it to help others.</p>
+                <a href="/report" class="btn btn-danger w-100">Report Now</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation-buttons mt-4">
+        <a href="/awareness" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to All Scams
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const practiceQuestions = {{ practice_questions | tojson }};
+let currentPracticeQuestion = 0;
+let practiceAnswers = [];
+
+if (practiceQuestions && practiceQuestions.length > 0) {
+    document.getElementById('start-practice-quiz').addEventListener('click', startPracticeQuiz);
+    document.getElementById('practice-next-btn').addEventListener('click', nextPracticeQuestion);
+    document.getElementById('practice-prev-btn').addEventListener('click', prevPracticeQuestion);
+    document.getElementById('practice-submit-btn').addEventListener('click', submitPracticeQuiz);
+    document.getElementById('practice-retake-btn').addEventListener('click', () => {
+        document.getElementById('practice-quiz-results').style.display = 'none';
+        document.getElementById('practice-quiz-intro').style.display = 'block';
+        currentPracticeQuestion = 0;
+        practiceAnswers = [];
+    });
+}
+
+function startPracticeQuiz() {
+    practiceAnswers = new Array(practiceQuestions.length).fill(null);
+    document.getElementById('practice-quiz-intro').style.display = 'none';
+    document.getElementById('practice-quiz-questions').style.display = 'block';
+    showPracticeQuestion(0);
+}
+
+function showPracticeQuestion(index) {
+    currentPracticeQuestion = index;
+    const question = practiceQuestions[index];
+    
+    const progress = ((index + 1) / practiceQuestions.length) * 100;
+    document.getElementById('practice-progress').style.width = progress + '%';
+    document.getElementById('practice-progress').textContent = `Question ${index + 1} of ${practiceQuestions.length}`;
+    
+    const container = document.getElementById('practice-question-container');
+    container.innerHTML = `
+        <div class="question-card">
+            <h5 class="mb-3">Question ${index + 1}</h5>
+            <p class="mb-3">${question.question}</p>
+            <div class="options-container">
+                ${question.options.map((option, i) => `
+                    <label class="option-item ${practiceAnswers[index] === i ? 'selected' : ''}" for="pq${index}o${i}">
+                        <input class="form-check-input" type="radio" name="practice${index}" 
+                               id="pq${index}o${i}" value="${i}" 
+                               ${practiceAnswers[index] === i ? 'checked' : ''}>
+                        <span class="option-text">${option}</span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    // Make entire option clickable
+    document.querySelectorAll('.option-item').forEach((label) => {
+        label.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'INPUT') {
+                const input = this.querySelector('input');
+                input.checked = true;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+    
+    document.querySelectorAll(`input[name="practice${index}"]`).forEach(input => {
+        input.addEventListener('change', (e) => {
+            practiceAnswers[index] = parseInt(e.target.value);
+            document.querySelectorAll('.option-item').forEach(item => item.classList.remove('selected'));
+            e.target.closest('.option-item').classList.add('selected');
+            updatePracticeButtons();
+        });
+    });
+    
+    updatePracticeButtons();
+}
+
+function updatePracticeButtons() {
+    document.getElementById('practice-prev-btn').style.display = currentPracticeQuestion > 0 ? 'block' : 'none';
+    document.getElementById('practice-next-btn').style.display = 
+        currentPracticeQuestion < practiceQuestions.length - 1 && practiceAnswers[currentPracticeQuestion] !== null ? 'block' : 'none';
+    document.getElementById('practice-submit-btn').style.display = 
+        currentPracticeQuestion === practiceQuestions.length - 1 && practiceAnswers.every(a => a !== null) ? 'block' : 'none';
+}
+
+function nextPracticeQuestion() {
+    if (currentPracticeQuestion < practiceQuestions.length - 1) {
+        showPracticeQuestion(currentPracticeQuestion + 1);
+    }
+}
+
+function prevPracticeQuestion() {
+    if (currentPracticeQuestion > 0) {
+        showPracticeQuestion(currentPracticeQuestion - 1);
+    }
+}
+
+function submitPracticeQuiz() {
+    const score = practiceAnswers.reduce((acc, answer, i) => {
+        return acc + (answer === practiceQuestions[i].correct ? 1 : 0);
+    }, 0);
+    
+    const percentage = (score / practiceQuestions.length) * 100;
+    
+    let scoreClass = 'text-success';
+    let message = 'Excellent! You understand this scam well!';
+    let emoji = '🎉';
+    
+    if (percentage < 50) {
+        scoreClass = 'text-danger';
+        message = 'Review the information above and try again!';
+        emoji = '📚';
+    } else if (percentage < 70) {
+        scoreClass = 'text-warning';
+        message = 'Good effort! A bit more review will help.';
+        emoji = '💪';
+    } else if (percentage < 90) {
+        scoreClass = 'text-info';
+        message = 'Great job! You\'re well-prepared!';
+        emoji = '⭐';
+    }
+    
+    document.getElementById('practice-quiz-questions').style.display = 'none';
+    document.getElementById('practice-quiz-results').style.display = 'block';
+    
+    document.getElementById('practice-score-display').innerHTML = `
+        <h3 class="${scoreClass}">${emoji} Score: ${score}/${practiceQuestions.length} (${percentage.toFixed(0)}%)</h3>
+        <p class="lead">${message}</p>
+    `;
+    
+    // Show detailed results with explanations
+    let detailsHTML = '<div class="text-start">';
+    practiceAnswers.forEach((answer, i) => {
+        const question = practiceQuestions[i];
+        const isCorrect = answer === question.correct;
+        const icon = isCorrect ? 
+            '<i class="fas fa-check-circle text-success"></i>' : 
+            '<i class="fas fa-times-circle text-danger"></i>';
+        
+        detailsHTML += `
+            <div class="result-item ${isCorrect ? 'correct' : 'incorrect'}">
+                <h5>${icon} Question ${i + 1}</h5>
+                <p class="mb-1"><strong>${question.question}</strong></p>
+                <p class="mb-1">Your answer: ${question.options[answer]}</p>
+                ${!isCorrect ? `<p class="mb-1 text-success">Correct answer: ${question.options[question.correct]}</p>` : ''}
+                <p class="small text-muted"><i class="fas fa-info-circle"></i> ${question.explanation || 'No explanation available.'}</p>
+            </div>
+        `;
+    });
+    detailsHTML += '</div>';
+    
+    document.getElementById('practice-results-details').innerHTML = detailsHTML;
+}
+</script>
+{% endblock %}

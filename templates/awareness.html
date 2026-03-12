@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Scam Awareness - Learn About Online Scams{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="display-5 fw-bold"><i class="fas fa-lightbulb"></i> Scam Awareness</h1>
+        <p class="lead">Learn about different types of online scams and how to protect yourself</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row g-4">
+        {% for key, scam in scams.items() %}
+        <div class="col-md-6 col-lg-4">
+            <div class="scam-card">
+                <div class="scam-card-header">
+                    <i class="fas {{ scam.icon }}"></i>
+                    <h4>{{ scam.title }}</h4>
+                </div>
+                <div class="scam-card-body">
+                    <p>{{ scam.description }}</p>
+                    <div class="mt-3">
+                        <h6 class="text-danger"><i class="fas fa-exclamation-circle"></i> Warning Signs:</h6>
+                        <ul class="small">
+                            {% for sign in scam.warning_signs[:3] %}
+                            <li>{{ sign }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <a href="/awareness/{{ key }}" class="btn btn-primary btn-sm w-100">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="tips-section mt-5">
+        <h2 class="text-center mb-4">General Safety Tips</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="tip-card">
+                    <h5><i class="fas fa-check-circle text-success"></i> Do's</h5>
+                    <ul>
+                        <li>Verify sender identity before responding</li>
+                        <li>Use strong, unique passwords</li>
+                        <li>Enable two-factor authentication</li>
+                        <li>Keep software and antivirus updated</li>
+                        <li>Research before making online purchases</li>
+                        <li>Trust your instincts</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="tip-card">
+                    <h5><i class="fas fa-times-circle text-danger"></i> Don'ts</h5>
+                    <ul>
+                        <li>Never share passwords or PINs</li>
+                        <li>Don't click suspicious links</li>
+                        <li>Avoid sharing personal info with strangers</li>
+                        <li>Don't send money to people you haven't met</li>
+                        <li>Never pay upfront fees for prizes</li>
+                        <li>Don't rush into decisions under pressure</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

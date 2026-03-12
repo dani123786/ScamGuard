@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Scam Awareness System{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Protect Yourself from Online Scams</h1>
+                <p class="lead mb-4">Learn to identify, prevent, and report online scams. Stay informed and stay safe in the digital world.</p>
+                <div class="d-flex gap-3">
+                    <a href="/awareness" class="btn btn-primary btn-lg">
+                        <i class="fas fa-lightbulb"></i> Learn About Scams
+                    </a>
+                    <a href="/checker" class="btn btn-warning btn-lg">
+                        <i class="fas fa-search"></i> Check for Scams
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=400&fit=crop" alt="Online Security" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row text-center mb-5">
+        <div class="col-12">
+            <h2 class="fw-bold mb-3">Why Scam Awareness Matters</h2>
+            <p class="text-muted">Millions of people fall victim to online scams every year. Knowledge is your best defense.</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5 align-items-stretch">
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="feature-card">
+                <div class="feature-icon bg-primary">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h4>Learn & Educate</h4>
+                <p>Discover the most common online scams and how to recognize them before it's too late.</p>
+                <a href="/awareness" class="btn btn-sm btn-outline-primary">Explore Scams</a>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="feature-card">
+                <div class="feature-icon bg-success">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h4>Test Your Knowledge</h4>
+                <p>Take our interactive quiz to assess your ability to identify and avoid online scams.</p>
+                <a href="/quiz" class="btn btn-sm btn-outline-success">Take Quiz</a>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="feature-card">
+                <div class="feature-icon bg-warning">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4>Verify Suspicious Content</h4>
+                <p>Use our scam checker to analyze emails, URLs, and messages for potential threats.</p>
+                <a href="/checker" class="btn btn-sm btn-outline-warning">Check Now</a>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="feature-card">
+                <div class="feature-icon bg-danger">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h4>AI Content Detector</h4>
+                <p>Detect AI-generated images, videos, and audio to verify authenticity of digital content.</p>
+                <a href="/ai-detector" class="btn btn-sm btn-outline-danger">Detect AI</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-card">
+                    <h3 class="stat-number">10</h3>
+                    <p class="stat-label">Scam Types Covered</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-card">
+                    <h3 class="stat-number">60</h3>
+                    <p class="stat-label">Quiz Questions</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-card">
+                    <h3 class="stat-number">AI</h3>
+                    <p class="stat-label">Content Detection</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-card">
+                    <h3 class="stat-number">24/7</h3>
+                    <p class="stat-label">Protection Tools</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert-section mt-5">
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+            <div>
+                <h5 class="alert-heading mb-2">⚠️ Common Warning Signs</h5>
+                <ul class="mb-0">
+                    <li>Requests for immediate action or payment</li>
+                    <li>Too good to be true offers</li>
+                    <li>Requests for personal or financial information</li>
+                    <li>Poor grammar and spelling errors</li>
+                    <li>Suspicious links or attachments</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-section mt-5">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="cta-card bg-primary text-white">
+                    <h4><i class="fas fa-flag"></i> Report a Scam</h4>
+                    <p>Help protect others by reporting scams you've encountered.</p>
+                    <a href="/report" class="btn btn-light">Report Now</a>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="cta-card bg-info text-white">
+                    <h4><i class="fas fa-book"></i> Additional Resources</h4>
+                    <p>Access helpful links and contact information for reporting scams.</p>
+                    <a href="/resources" class="btn btn-light">View Resources</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

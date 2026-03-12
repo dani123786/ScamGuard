@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Scam Checker - Verify Suspicious Content{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="display-5 fw-bold"><i class="fas fa-search"></i> Scam Checker</h1>
+        <p class="lead">Analyze emails, URLs, and messages for potential scam indicators</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="checker-card">
+                <h4 class="mb-4">What would you like to check?</h4>
+                
+                <ul class="nav nav-tabs mb-4" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="email-tab" data-bs-toggle="tab" 
+                                data-bs-target="#email" type="button">
+                            <i class="fas fa-envelope"></i> Email Content
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="url-tab" data-bs-toggle="tab" 
+                                data-bs-target="#url" type="button">
+                            <i class="fas fa-link"></i> URL/Link
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="message-tab" data-bs-toggle="tab" 
+                                data-bs-target="#message" type="button">
+                            <i class="fas fa-comment"></i> Message
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="email" role="tabpanel">
+                        <form id="email-form">
+                            <div class="mb-3">
+                                <label class="form-label">Paste the email content below:</label>
+                                <textarea class="form-control" rows="8" id="email-content" 
+                                          placeholder="Paste the suspicious email content here..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Analyze Email
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="url" role="tabpanel">
+                        <form id="url-form">
+                            <div class="mb-3">
+                                <label class="form-label">Enter the URL to check:</label>
+                                <input type="text" class="form-control" id="url-content" 
+                                       placeholder="https://example.com">
+                                <small class="form-text text-muted">
+                                    Enter the complete URL including http:// or https://
+                                </small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Analyze URL
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="message" role="tabpanel">
+                        <form id="message-form">
+                            <div class="mb-3">
+                                <label class="form-label">Paste the message content:</label>
+                                <textarea class="form-control" rows="8" id="message-content" 
+                                          placeholder="Paste the suspicious message here..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Analyze Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="results-container" style="display: none;" class="mt-4">
+                    <hr>
+                    <h4 class="mb-3">Analysis Results</h4>
+                    <div id="results-content"></div>
+                </div>
+            </div>
+
+            <div class="info-card mt-4">
+                <h5><i class="fas fa-info-circle"></i> How it works</h5>
+                <p>Our scam checker analyzes content for common scam indicators including:</p>
+                <ul>
+                    <li>Urgent or threatening language</li>
+                    <li>Requests for personal or financial information</li>
+                    <li>Suspicious URLs or links</li>
+                    <li>Common scam keywords and phrases</li>
+                    <li>Security protocol issues</li>
+                </ul>
+                <p class="mb-0 small text-muted">
+                    <strong>Note:</strong> This tool provides guidance based on common patterns. 
+                    Always use your judgment and verify through official channels when in doubt.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('email-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    checkContent('email', document.getElementById('email-content').value);
+});
+
+document.getElementById('url-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    checkContent('url', document.getElementById('url-content').value);
+});
+
+document.getElementById('message-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    checkContent('message', document.getElementById('message-content').value);
+});
+
+async function checkContent(type, content) {
+    if (!content.trim()) {
+        alert('Please enter content to analyze');
+        return;
+    }
+
+    const response = await fetch('/api/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, content })
+    });
+
+    const results = await response.json();
+    displayResults(results);
+}
+
+function displayResults(results) {
+    const container = document.getElementById('results-container');
+    const content = document.getElementById('results-content');
+
+    let riskBadge = '';
+    if (results.risk_level === 'HIGH') {
+        riskBadge = '<span class="badge bg-danger fs-5">HIGH RISK</span>';
+    } else if (results.risk_level === 'MEDIUM') {
+        riskBadge = '<span class="badge bg-warning fs-5">MEDIUM RISK</span>';
+    } else {
+        riskBadge = '<span class="badge bg-success fs-5">LOW RISK</span>';
+    }
+
+    let warningsHTML = '';
+    if (results.warnings.length > 0) {
+        warningsHTML = `
+            <div class="alert alert-${results.risk_color} mt-3">
+                <h6><i class="fas fa-exclamation-triangle"></i> Warning Signs Detected:</h6>
+                <ul class="mb-0">
+                    ${results.warnings.map(w => `<li>${w}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
+    content.innerHTML = `
+        <div class="result-display">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Risk Level: ${riskBadge}</h5>
+                <div class="risk-score">
+                    <div class="circular-progress" data-score="${results.risk_score}">
+                        <svg width="100" height="100">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#e9ecef" stroke-width="8"/>
+                            <circle cx="50" cy="50" r="40" fill="none" 
+                                    stroke="${results.risk_level === 'HIGH' ? '#dc3545' : results.risk_level === 'MEDIUM' ? '#ffc107' : '#28a745'}" 
+                                    stroke-width="8" 
+                                    stroke-dasharray="${2 * Math.PI * 40}" 
+                                    stroke-dashoffset="${2 * Math.PI * 40 * (1 - results.risk_score / 100)}"
+                                    transform="rotate(-90 50 50)"/>
+                        </svg>
+                        <div class="score-text">${results.risk_score}</div>
+                    </div>
+                </div>
+            </div>
+            
+            ${warningsHTML}
+            
+            <div class="alert alert-info mt-3">
+                <h6><i class="fas fa-lightbulb"></i> Recommendation:</h6>
+                <p class="mb-0">${results.recommendation}</p>
+            </div>
+        </div>
+    `;
+
+    container.style.display = 'block';
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+{% endblock %}

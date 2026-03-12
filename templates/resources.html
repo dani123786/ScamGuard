@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Resources - Scam Reporting & Help{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="display-5 fw-bold"><i class="fas fa-book"></i> Resources & Help</h1>
+        <p class="lead">Useful links and contact information for reporting scams</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="resource-section mb-4">
+                <h3><i class="fas fa-flag text-danger"></i> Report Scams</h3>
+                <p>If you've been targeted or fallen victim to a scam, report it to these authorities:</p>
+                
+                <div class="resource-card">
+                    <h5>Federal Trade Commission (FTC)</h5>
+                    <p>Report fraud, scams, and bad business practices</p>
+                    <a href="https://reportfraud.ftc.gov" target="_blank" class="btn btn-sm btn-outline-primary">
+                        Visit Website <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+
+                <div class="resource-card">
+                    <h5>Internet Crime Complaint Center (IC3)</h5>
+                    <p>FBI's central hub for reporting internet crime</p>
+                    <a href="https://www.ic3.gov" target="_blank" class="btn btn-sm btn-outline-primary">
+                        Visit Website <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+
+                <div class="resource-card">
+                    <h5>Anti-Phishing Working Group</h5>
+                    <p>Report phishing emails and websites</p>
+                    <p><strong>Email:</strong> reportphishing@apwg.org</p>
+                </div>
+            </div>
+
+            <div class="resource-section mb-4">
+                <h3><i class="fas fa-phone text-success"></i> Get Help</h3>
+                
+                <div class="resource-card">
+                    <h5>National Cyber Security Centre</h5>
+                    <p>Guidance on staying safe online</p>
+                    <a href="https://www.ncsc.gov.uk" target="_blank" class="btn btn-sm btn-outline-primary">
+                        Visit Website <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+
+                <div class="resource-card">
+                    <h5>Consumer Financial Protection Bureau</h5>
+                    <p>Help with financial scams and fraud</p>
+                    <a href="https://www.consumerfinance.gov" target="_blank" class="btn btn-sm btn-outline-primary">
+                        Visit Website <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="resource-section mb-4">
+                <h3><i class="fas fa-graduation-cap text-info"></i> Educational Resources</h3>
+                
+                <div class="resource-card">
+                    <h5>Stay Safe Online</h5>
+                    <p>National Cyber Security Alliance's resource for online safety</p>
+                    <a href="https://staysafeonline.org" target="_blank" class="btn btn-sm btn-outline-primary">
+                        Visit Website <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+
+                <div class="resource-card">
+                    <h5>OnGuard Online</h5>
+                    <p>Practical tips from the federal government</p>
+                    <a href="https://www.consumer.ftc.gov/features/scam-alerts" target="_blank" class="btn btn-sm btn-outline-primary">
+                        Visit Website <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="sidebar-card mb-4">
+                <h5><i class="fas fa-exclamation-circle"></i> What to Do If Scammed</h5>
+                <ol class="small">
+                    <li>Stop all communication with the scammer</li>
+                    <li>Contact your bank or credit card company</li>
+                    <li>Change your passwords immediately</li>
+                    <li>Report to local law enforcement</li>
+                    <li>File a report with the FTC</li>
+                    <li>Monitor your accounts for suspicious activity</li>
+                    <li>Consider placing a fraud alert on your credit</li>
+                </ol>
+            </div>
+
+            <div class="sidebar-card mb-4 bg-warning">
+                <h5><i class="fas fa-shield-alt"></i> Quick Tips</h5>
+                <ul class="small mb-0">
+                    <li>Never share personal information with unknown contacts</li>
+                    <li>Verify requests through official channels</li>
+                    <li>Use strong, unique passwords</li>
+                    <li>Enable two-factor authentication</li>
+                    <li>Keep software updated</li>
+                    <li>Trust your instincts</li>
+                </ul>
+            </div>
+
+            <div class="sidebar-card">
+                <h5><i class="fas fa-flag"></i> Report to Us</h5>
+                <p class="small">Help others by sharing your experience</p>
+                <a href="/report" class="btn btn-danger w-100">Submit Report</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

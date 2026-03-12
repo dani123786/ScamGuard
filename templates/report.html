@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Report a Scam{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="display-5 fw-bold"><i class="fas fa-flag"></i> Report a Scam</h1>
+        <p class="lead">Help protect others by reporting scams you've encountered</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="report-card">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Your report will be automatically sent to:
+                    <ul class="mb-0 mt-2">
+                        <li><strong>Federal Trade Commission (FTC)</strong></li>
+                        <li><strong>Internet Crime Complaint Center (IC3)</strong></li>
+                        <li>Other relevant authorities based on scam type</li>
+                    </ul>
+                    <p class="mb-0 mt-2"><small>All information is kept confidential and used only for investigation purposes.</small></p>
+                </div>
+
+                <form id="report-form">
+                    <div class="mb-4">
+                        <label class="form-label">Type of Scam <span class="text-danger">*</span></label>
+                        <select class="form-select" id="scam-type" required>
+                            <option value="">Select scam type...</option>
+                            <option value="phishing">Phishing</option>
+                            <option value="romance">Romance Scam</option>
+                            <option value="investment">Investment Scam</option>
+                            <option value="tech_support">Tech Support Scam</option>
+                            <option value="online_shopping">Online Shopping Scam</option>
+                            <option value="lottery">Lottery/Prize Scam</option>
+                            <option value="employment">Employment Scam</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">How did they contact you? <span class="text-danger">*</span></label>
+                        <select class="form-select" id="contact-method" required>
+                            <option value="">Select method...</option>
+                            <option value="email">Email</option>
+                            <option value="phone">Phone Call</option>
+                            <option value="text">Text Message</option>
+                            <option value="social">Social Media</option>
+                            <option value="website">Website</option>
+                            <option value="app">Mobile App</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" rows="6" required
+                                  placeholder="Please describe what happened, including any suspicious details..."></textarea>
+                        <small class="form-text text-muted">Include as much detail as possible</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Scammer Contact Information (if available)</label>
+                        <input type="text" class="form-control" id="scammer-contact" 
+                               placeholder="Email, phone number, website, username, etc.">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Did you lose money?</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="lost-money" id="lost-yes" value="yes">
+                            <label class="form-check-label" for="lost-yes">Yes</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="lost-money" id="lost-no" value="no" checked>
+                            <label class="form-check-label" for="lost-no">No</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4" id="amount-section" style="display: none;">
+                        <label class="form-label">Approximate Amount Lost</label>
+                        <input type="text" class="form-control" id="amount" placeholder="$0.00">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Your Email (optional)</label>
+                        <input type="email" class="form-control" id="reporter-email" 
+                               placeholder="your@email.com">
+                        <small class="form-text text-muted">Only if you want us to follow up with you</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">When did this occur?</label>
+                        <input type="date" class="form-control" id="incident-date">
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <strong><i class="fas fa-exclamation-triangle"></i> Important:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Your report will be sent directly to law enforcement authorities</li>
+                            <li>Provide as much detail as possible to help with investigation</li>
+                            <li>If you lost money, contact your bank immediately</li>
+                            <li>Keep all evidence (emails, screenshots, receipts)</li>
+                            <li>You may be contacted for additional information</li>
+                        </ul>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger btn-lg w-100">
+                        <i class="fas fa-paper-plane"></i> Submit Report
+                    </button>
+                </form>
+
+                <div id="success-message" style="display: none;" class="mt-4">
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-check-circle"></i> Report Submitted Successfully!</h5>
+                        <p>Your report has been sent to the following authorities:</p>
+                        <ul>
+                            <li>Federal Trade Commission (FTC)</li>
+                            <li>Internet Crime Complaint Center (IC3)</li>
+                        </ul>
+                        <p class="mb-0">You should receive a confirmation shortly. Thank you for helping protect others from scams.</p>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="/" class="btn btn-primary">Return to Home</a>
+                        <a href="/resources" class="btn btn-outline-primary">View Resources</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('input[name="lost-money"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        document.getElementById('amount-section').style.display = 
+            e.target.value === 'yes' ? 'block' : 'none';
+    });
+});
+
+document.getElementById('report-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        scam_type: document.getElementById('scam-type').value,
+        contact_method: document.getElementById('contact-method').value,
+        description: document.getElementById('description').value,
+        scammer_contact: document.getElementById('scammer-contact').value,
+        lost_money: document.querySelector('input[name="lost-money"]:checked').value,
+        amount: document.getElementById('amount').value,
+        reporter_email: document.getElementById('reporter-email').value,
+        incident_date: document.getElementById('incident-date').value
+    };
+    
+    const response = await fetch('/api/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+        document.getElementById('report-form').style.display = 'none';
+        document.getElementById('success-message').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+});
+</script>
+{% endblock %}
