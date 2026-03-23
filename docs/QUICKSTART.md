@@ -38,16 +38,9 @@ Test your scam detection skills with 12 interactive questions. Get instant feedb
 ### 🔍 Scam Checker
 Analyze suspicious content:
 1. Click "Scam Checker" in the navigation
-2. Choose the type (Email, URL, or Message)
+2. Choose the type (Email or Message)
 3. Paste the content
 4. Get instant risk analysis
-
-### 🤖 AI Content Detector
-Verify authenticity of digital media:
-1. Click "AI Detector" in the navigation
-2. Choose media type (Image, Audio, or Video)
-3. Upload or drag-and-drop your file
-4. Get AI probability analysis
 
 ### 📚 Resources
 Access official reporting channels and educational resources.

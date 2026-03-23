@@ -20,9 +20,9 @@
    ```
 
 2. **Use the correct URL:**
-   - ✅ Correct: `http://localhost:5000` or `http://127.0.0.1:5000`
-   - ❌ Wrong: `http://localhost:5000/index.html`
-   - ❌ Wrong: Opening HTML files directly in browser
+   - Correct: `http://localhost:5000` or `http://127.0.0.1:5000`
+   - Wrong: `http://localhost:5000/index.html`
+   - Wrong: Opening HTML files directly in browser
 
 3. **Check if port 5000 is already in use:**
    - Windows: `netstat -ano | findstr :5000`

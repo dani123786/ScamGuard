@@ -30,7 +30,6 @@ def test_file_structure():
         'templates/scam_detail.html',
         'templates/quiz.html',
         'templates/checker.html',
-        'templates/ai_detector.html',
         'templates/resources.html',
         'templates/report.html',
         'static/css/style.css'
@@ -51,7 +50,9 @@ def test_app_configuration():
     print("\nTesting app configuration...")
     
     try:
-        from app import app, SCAMS_DATA, QUIZ_QUESTIONS
+        from app import app
+        from data.scams import SCAMS_DATA
+        from data.quiz_questions import QUIZ_QUESTIONS
         
         # Test scams data
         if len(SCAMS_DATA) >= 9:
@@ -61,15 +62,15 @@ def test_app_configuration():
             return False
         
         # Test quiz questions
-        if len(QUIZ_QUESTIONS) >= 10:
-            print(f"✓ Quiz questions loaded ({len(QUIZ_QUESTIONS)} questions)")
+        if len(QUIZ_QUESTIONS) >= 3:
+            print(f"✓ Quiz questions loaded ({len(QUIZ_QUESTIONS)} difficulty levels)")
         else:
-            print(f"✗ Expected at least 10 questions, found {len(QUIZ_QUESTIONS)}")
+            print(f"✗ Expected 3 difficulty levels, found {len(QUIZ_QUESTIONS)}")
             return False
         
         # Test routes
         routes = [rule.rule for rule in app.url_map.iter_rules()]
-        required_routes = ['/', '/awareness', '/quiz', '/checker', '/ai-detector', '/resources', '/report']
+        required_routes = ['/', '/awareness', '/quiz', '/checker', '/resources', '/report']
         
         missing_routes = []
         for route in required_routes:
@@ -99,7 +100,6 @@ def test_templates():
                 ('/awareness', 'Awareness'),
                 ('/quiz', 'Quiz'),
                 ('/checker', 'Checker'),
-                ('/ai-detector', 'AI Detector'),
                 ('/resources', 'Resources'),
                 ('/report', 'Report')
             ]
