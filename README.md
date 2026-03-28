@@ -1,241 +1,297 @@
-# 🛡️ ScamGuard - Online Scam Awareness System
+# ScamGuard — AI-Powered Scam Detection & Education Platform
 
-A comprehensive web application to educate users about online scams and provide tools to identify potential scams.
+A web application that helps users identify, report, and learn about online scams using AI-powered analysis backed by a Supabase PostgreSQL database.
 
-![Status](https://img.shields.io/badge/status-production%20ready-brightgreen)
-![Python](https://img.shields.io/badge/python-3.8+-blue)
-![Flask](https://img.shields.io/badge/flask-2.3+-lightgrey)
-![License](https://img.shields.io/badge/license-MIT-green)
+---
 
 ## Features
 
-### Scam Awareness
-- **10 Scam Types Covered**: Phishing, Cryptocurrency, Investment, Tech Support, Online Shopping, Identity Theft, Lottery, Employment, Social Media, and Deepfake scams
-- **Educational Videos**: Professional videos for each scam type (10/10 complete)
-- **Interactive Practice Quizzes**: 10 questions per scam type (100 total)
-- **Warning Signs & Prevention Tips**: Detailed information for each scam
+- **AI Scam Checker** — Analyze emails, messages, and URLs using Google Gemini AI
+- **Scammer Verification** — Check if an email or phone number has been reported as a scammer
+- **Scam Reporting** — Submit reports with full AI analysis shown to the user instantly
+- **Educational Content** — 10 scam types with videos (Supabase Storage), warning signs, prevention tips, and practice quizzes
+- **Knowledge Quiz** — Easy, medium, and difficult levels with instant feedback
+- **Live Statistics** — Real-time dashboard of community reports
+- **Admin Panel** — Password-protected interface to manage all content and view reports
+- **Pakistan Standard Time (PKT)** — All timestamps stored in UTC and displayed in PKT (UTC+5) throughout the system
+- **Fully Responsive** — Works on desktop, tablet, and mobile
 
-### Interactive Quiz System
-- **3 Difficulty Levels**: Easy, Medium, and Difficult
-- **60 Total Questions**: 20 questions per difficulty level
-- **Instant Feedback**: Explanations for each answer
-- **Score Tracking**: Track your progress and knowledge
+---
 
-### Scam Checker Tool
-- **Email Analysis**: Detect phishing indicators in emails
-- **Message Scanning**: Analyze messages for scam characteristics
-- **Risk Scoring**: Get a risk assessment with recommendations
+## Technology Stack
 
-### Scam Reporting System
-- **Report Incidents**: Submit scam reports saved locally
-- **Anonymous Reporting**: Optional reporter information
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.12 · Flask 3.0 (Blueprint architecture) |
+| Database | Supabase (PostgreSQL) |
+| File Storage | Supabase Storage (educational videos) |
+| AI | Google Gemini API (`google-genai 1.68`) |
+| Frontend | HTML5 · Bootstrap 5 · Vanilla JS (one file per page) |
+| Rate Limiting | Flask-Limiter 3.5 |
+| Deployment | Vercel (WSGI via Gunicorn) |
 
-## Quick Start
-
-### Prerequisites
-- Python 3.8 or higher
-- pip (Python package manager)
-
-### Installation
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/yourusername/scamguard.git
-cd scamguard
-```
-
-2. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-3. **Run the application**
-```bash
-python app.py
-```
-
-4. **Open in browser**
-```
-http://127.0.0.1:5000
-```
-
-## Responsive Design
-
-ScamGuard is fully responsive and works on:
-- Smartphones (iOS & Android)
-- Tablets (iPad, Android tablets)
-- Laptops (all screen sizes)
-- Desktop Computers (HD to 4K)
-
-### Mobile Features
-- Touch-optimized interface
-- Slide-in sidebar navigation
-- Full-width buttons
-- Optimized font sizes
-- Responsive videos
-
-### Desktop Features
-- Always-visible sidebar
-- Keyboard shortcuts (Ctrl+B to toggle sidebar)
-- Hover effects
-- Multi-column layouts
+---
 
 ## Project Structure
 
 ```
-scamguard/
-├── app.py                  # Main Flask application
-├── requirements.txt        # Python dependencies
-├── vercel.json             # Vercel deployment config
+ScamGuard AI INEGRATED/
+│
+├── app.py                          # App factory: env load, Flask init, shared objects,
+│                                   # blueprint registration, entry point
+├── requirements.txt                # All Python dependencies (pinned versions)
+├── vercel.json                     # Vercel WSGI deployment config
+├── start.bat                       # Windows one-click startup script
+├── .env                            # Environment variables — never commit this file
 ├── .gitignore
-├── README.md
-├── data/                   # Application data
+└── README.md
+│
+├── routes/                         # Flask Blueprints — one file per responsibility
 │   ├── __init__.py
-│   ├── scams.py            # Scam awareness data
-│   ├── practice_quizzes.py # Practice quiz questions
-│   ├── quiz_questions.py   # Main quiz questions (easy/medium/difficult)
-│   └── checkers.py         # Email & message scam check logic
+│   ├── extensions.py               # Shared module-level objects: supabase_client,
+│   │                               # content_service, cache_manager, auth helpers,
+│   │                               # cache invalidation helpers
+│   ├── public.py                   # Public page routes:
+│   │                               #   GET /  · /awareness  · /awareness/<scam_type>
+│   │                               #   GET /quiz  · /checker  · /verify
+│   │                               #   GET /resources  · /report
+│   ├── api.py                      # Public JSON API — all /api/* endpoints
+│   │                               # Handles PKT timezone conversion (_to_pkt),
+│   │                               # AI report analysis, scam checker, stats
+│   ├── auth_routes.py              # Admin authentication:
+│   │                               #   GET  /admin/login
+│   │                               #   POST /admin/auth/login · /admin/auth/logout
+│   │                               #   GET  /admin/auth/me · /admin/auth/csrf-token
+│   ├── admin_routes.py             # Admin content management (auth-protected):
+│   │                               #   GET  /admin/reports  (reports dashboard)
+│   │                               #   CRUD /admin/quiz-questions
+│   │                               #   CRUD /admin/scam-definitions
+│   │                               #   CRUD /admin/practice-quizzes
+│   │                               #   POST /admin/practice-quizzes/reorder
+│   │                               #   POST /admin/practice-quizzes/<id>/copy-to-quiz
+│   │                               #   POST /admin/quiz-questions/bulk
+│   └── analytics_routes.py        # Analytics & admin tools (auth-protected):
+│                                   #   GET  /admin/analytics
+│                                   #   GET  /api/analytics/export
+│                                   #   GET  /admin/audit-log
+│                                   #   GET  /admin/export/json · /admin/export/csv
+│                                   #   POST /admin/import
+│                                   #   GET  /admin/content
+│                                   #   POST /admin/rollback
+│                                   #   GET  /admin/cache/status
+│                                   #   POST /admin/cache/clear
+│
+├── services/                       # Business-logic layer (no Flask dependencies)
+│   ├── __init__.py
+│   ├── content_service.py          # All database read queries with TTL caching;
+│   │                               # get_quiz_questions, get_scam_definitions,
+│   │                               # get_practice_quizzes
+│   ├── content_validator.py        # Input validation for quiz questions, scam
+│   │                               # definitions, and practice quizzes
+│   ├── audit_logger.py             # Logs create/update/delete to content_versions
+│   │                               # table with before/after snapshots
+│   ├── auth.py                     # Admin session auth, RBAC role checks,
+│   │                               # CSRF token generation & validation,
+│   │                               # password hashing (Werkzeug)
+│   ├── cache_manager.py            # Lightweight in-memory TTL cache
+│   │                               # (SimpleCacheManager)
+│   └── rate_limiter.py             # Flask-Limiter initialisation
+│
+├── data/                           # AI analysis layer
+│   ├── __init__.py
+│   └── checkers.py                 # Google Gemini API integration:
+│                                   #   analyze_with_ai()         — email / message
+│                                   #   analyze_url_with_ai()     — URL phishing check
+│                                   #   analyze_report_with_ai()  — submitted report
+│
+├── templates/                      # Jinja2 HTML templates
+│   ├── base.html                   # Base layout: sidebar nav, Bootstrap, font imports
+│   ├── index.html                  # Home page with live community stats
+│   ├── awareness.html              # All 10 scam types overview grid
+│   ├── scam_detail.html            # Individual scam page: video + practice quiz
+│   ├── quiz.html                   # Main knowledge quiz (easy / medium / difficult)
+│   ├── checker.html                # AI scam checker (email / message / URL tabs)
+│   ├── report.html                 # Report a scam form + AI analysis result panel
+│   ├── verify.html                 # Verify a scammer contact
+│   ├── resources.html              # Official resources and external links
+│   ├── admin.html                  # Admin reports dashboard with search & filters
+│   └── admin_login.html            # Admin login page
+│
 ├── static/
 │   ├── css/
-│   │   └── style.css       # Responsive styles
-│   └── videos/             # Educational videos (10 files)
-├── templates/              # HTML templates
-│   ├── base.html
-│   ├── index.html
-│   ├── awareness.html
-│   ├── scam_detail.html
-│   ├── quiz.html
-│   ├── checker.html
-│   ├── report.html
-│   └── resources.html
-├── reports/                # Saved scam reports
-├── tests/
-│   └── test_app.py
-└── docs/                   # Documentation
+│   │   └── style.css               # Full responsive application stylesheet
+│   └── js/                         # One JavaScript file per page
+│       ├── sidebar.js              # Sidebar toggle — loaded on every page via base.html
+│       ├── stats.js                # Animated live stats counter — index.html
+│       ├── quiz.js                 # Quiz engine: question flow, scoring — quiz.html
+│       ├── checker.js              # AI checker: tab switching, result cards — checker.html
+│       ├── practice_quiz.js        # Practice quiz engine — scam_detail.html
+│       ├── report.js               # Report form + AI analysis result display — report.html
+│       ├── verify.js               # Contact verification results — verify.html
+│       └── admin_login.js          # Admin login form handler — admin_login.html
+│
+└── reports/                        # Local flat-file backup of submitted scam reports
+    └── .gitkeep                    # Keeps the empty folder tracked in git
 ```
-
-## 🎬 Educational Videos
-
-All 10 scam awareness videos are included:
-- Phishing Scams
-- Cryptocurrency Scams
-- Investment & Ponzi Schemes
-- Tech Support Scams
-- E-Commerce & Shopping Scams
-- Identity Theft & Data Breach
-- Lottery & Prize Scams
-- Employment & Job Scams
-- Social Media & Impersonation
-- Deepfake Scams
-
-## Configuration
-
-No special configuration required. Reports are saved locally to the `reports/` folder.
-
-## Deployment
-
-### Deploy to Vercel
-
-1. **Install Vercel CLI**
-```bash
-npm install -g vercel
-```
-
-2. **Deploy**
-```bash
-vercel
-```
-
-3. **Follow the prompts** to complete deployment
-
-### Deploy to Heroku
-
-1. **Create Heroku app**
-```bash
-heroku create your-app-name
-```
-
-2. **Deploy**
-```bash
-git push heroku main
-```
-
-### Deploy to PythonAnywhere
-
-1. Upload files to PythonAnywhere
-2. Set up virtual environment
-3. Configure WSGI file
-4. Reload web app
-
-## Testing
-
-### Run Tests
-```bash
-python -m pytest tests/
-```
-
-### Test Responsiveness
-1. Open browser DevTools (F12)
-2. Toggle device mode (Ctrl+Shift+M)
-3. Test different screen sizes
-
-### Test on Mobile
-1. Find your computer's IP: `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
-2. On phone browser: `http://YOUR_IP:5000`
-3. Ensure phone and computer are on same WiFi
-
-## Statistics
-
-- **10 Scam Types**: Comprehensive coverage
-- **10 Educational Videos**: Professional content
-- **160 Quiz Questions**: 100 practice + 60 main quiz
-- **2 Detection Tools**: Scam checker, reporting
-- **Fully Responsive**: Works on all devices
-- **Production Ready**: Tested and optimized
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Bootstrap 5 for responsive framework
-- Font Awesome for icons
-- Flask for web framework
-- All contributors and testers
-
-## Support
-
-For support, please open an issue in the GitHub repository or contact the maintainers.
-
-## Roadmap
-
-- [ ] User authentication system
-- [ ] Database integration for progress tracking
-- [ ] Real AI detection API integration
-- [ ] Mobile app (iOS & Android)
-- [ ] Multi-language support
-- [ ] Admin dashboard
-- [ ] Analytics and reporting
-
-## Star History
-
-If you find this project useful, please consider giving it a star!
 
 ---
 
-**Made with ❤️ for online safety and scam awareness**
+## Database (Supabase)
 
-**Version:** 1.0.0  
-**Status:** Production Ready  
-**Last Updated:** March 12, 2026
+| Table | Description |
+|---|---|
+| `reports` | User-submitted scam reports. Stores `scam_type`, `description`, `scammer_contact`, `ai_analysis` (JSONB), `submitted_at` (UTC ISO timestamp) |
+| `quiz_questions` | 60 knowledge quiz questions across easy / medium / difficult |
+| `scam_definitions` | 10 scam types with descriptions, warning signs, prevention tips, and view counts |
+| `practice_quizzes` | 10 practice questions per scam type (100 total), ordered by `display_order` |
+| `content_versions` | Full audit trail — every create / update / delete is logged with before/after snapshots |
+| `admin_users` | Admin accounts with hashed passwords and role assignments |
+
+Videos are hosted in Supabase Storage (`Videos` bucket) and served via CDN URL.
+
+> **Important:** The `ai_analysis` column in `reports` must be set to type **`jsonb`** in Supabase. If it is `text`, the admin dashboard will silently show no AI analysis (the code handles this with automatic JSON parsing as a fallback).
+
+---
+
+## Setup & Running
+
+### 1. Clone and install dependencies
+
+```bash
+git clone <your-repo-url>
+cd "ScamGuard AI INEGRATED"
+pip install -r requirements.txt
+```
+
+### 2. Configure `.env`
+
+Copy the template below and fill in your own values:
+
+```env
+# Flask
+SECRET_KEY=your-long-random-secret-key
+FLASK_ENV=development
+PORT=5000
+
+# Supabase — Project Settings > API
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-service-role-key
+
+# Google Gemini AI
+GEMINI_API_KEY=your-gemini-api-key
+
+# Content source: auto | database-only | file-only
+DATABASE_MODE=auto
+```
+
+> ⚠️ Never commit `.env` to version control. It is already listed in `.gitignore`.
+
+### 3. Run
+
+```bash
+# Windows (double-click or run):
+start.bat
+
+# Or directly:
+python app.py
+```
+
+Open `http://localhost:5000`
+
+---
+
+## Admin Access
+
+Navigate to `http://localhost:5000/admin/login`
+
+All `/admin/*` routes are session-protected. Unauthenticated requests are automatically redirected to the login page. Role-based access control (RBAC) restricts write operations (`editor` and `admin` roles only).
+
+---
+
+## API Reference
+
+### Public Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/stats` | Live community statistics (total reports, high-risk count, top scam type) |
+| `GET` | `/api/scams` | All active scam definitions |
+| `GET` | `/api/scams/<scam_type>` | Single scam definition (also increments view count) |
+| `GET` | `/api/quiz/questions?difficulty=easy` | Quiz questions for a given difficulty |
+| `POST` | `/api/quiz/submit` | Submit quiz answers, returns score + explanations |
+| `GET` | `/api/practice/<scam_type>` | Practice questions for a scam type |
+| `POST` | `/api/practice/submit` | Submit practice answers, tracks completion stats |
+| `POST` | `/api/check` | AI analysis of email / message / url content |
+| `POST` | `/api/check/url` | Dedicated URL phishing analysis |
+| `POST` | `/api/report` | Submit a scam report; returns AI analysis to the user |
+| `POST` | `/api/verify` | Check if a contact has been previously reported |
+
+### Admin Endpoints (auth required)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/admin/reports` | Reports dashboard (HTML) |
+| `GET/POST` | `/admin/quiz-questions` | List / create quiz questions |
+| `PUT/DELETE` | `/admin/quiz-questions/<id>` | Update / soft-delete a question |
+| `POST` | `/admin/quiz-questions/bulk` | Bulk delete or change difficulty |
+| `GET/POST` | `/admin/scam-definitions` | List / create scam definitions |
+| `PUT/DELETE` | `/admin/scam-definitions/<id>` | Update / soft-delete a definition |
+| `GET/POST` | `/admin/practice-quizzes` | List / create practice quizzes |
+| `PUT/DELETE` | `/admin/practice-quizzes/<id>` | Update / soft-delete a quiz |
+| `POST` | `/admin/practice-quizzes/reorder` | Update display order |
+| `POST` | `/admin/practice-quizzes/<id>/copy-to-quiz` | Copy to quiz_questions table |
+| `GET` | `/admin/analytics` | Analytics dashboard (HTML) |
+| `GET` | `/admin/audit-log` | Audit trail of all content changes |
+| `GET` | `/admin/export/json` | Export all content as JSON |
+| `GET` | `/admin/export/csv` | Export reports as CSV |
+| `POST` | `/admin/import` | Import content from JSON |
+| `POST` | `/admin/rollback` | Roll back a content change |
+| `GET/POST` | `/admin/cache/status` · `/admin/cache/clear` | Cache management |
+
+---
+
+## Timezone Handling (PKT)
+
+All timestamps in this system follow a consistent two-step approach:
+
+1. **Storage** — `submitted_at` is saved as a UTC ISO 8601 string (e.g. `2026-03-28T08:30:00+00:00`) so Supabase can sort and filter correctly.
+2. **Display** — The `_to_pkt()` helper in `routes/api.py` converts any UTC timestamp to **Pakistan Standard Time (UTC+5)** before it is rendered in the admin portal or returned in API responses.
+
+This means all times shown in the admin dashboard, verify results, and report confirmations are in PKT.
+
+---
+
+## Deployment (Vercel)
+
+1. Push to GitHub
+2. Import the repo at [vercel.com](https://vercel.com)
+3. Add the following environment variables in the Vercel dashboard:
+   - `SUPABASE_URL`
+   - `SUPABASE_KEY`
+   - `SECRET_KEY`
+   - `GEMINI_API_KEY`
+4. Deploy — `vercel.json` already configures the WSGI entry point
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| App won't start | Ensure `.env` contains `SUPABASE_URL`, `SUPABASE_KEY`, and `GEMINI_API_KEY` |
+| AI analysis not appearing | Check `GEMINI_API_KEY` is valid and has remaining quota |
+| Admin portal shows no AI analysis | Set `ai_analysis` column type to `jsonb` in Supabase (not `text`) |
+| Wrong time shown | Timestamps are converted from UTC → PKT via `_to_pkt()` in `routes/api.py` |
+| Port already in use | Run `netstat -ano \| findstr :5000` then `taskkill /PID <PID> /F` |
+| Supabase 401 errors | Make sure you are using the **service role** key, not the anon key |
+
+---
+
+## Recent Fixes (v1.1)
+
+| File | Fix |
+|---|---|
+| `routes/api.py` | `submitted_at` now stores UTC ISO format so Supabase can sort/compare correctly |
+| `routes/api.py` | Report file names and monthly stats counter now use timezone-aware datetimes |
+| `routes/admin_routes.py` | `ai_analysis` is parsed from JSON string → dict when Supabase returns it as text |
+| `static/js/report.js` | Users now see the full AI analysis (severity, advice, red flags, tips, authorities) after submitting a report |

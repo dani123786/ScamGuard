@@ -1,133 +1,808 @@
 {% extends "base.html" %}
 
-{% block title %}Home - Scam Awareness System{% endblock %}
+{% block title %}ScamGuard — Online Scam Protection{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ─── Design Tokens ───────────────────────────────────────── */
+:root {
+  --navy:    #080d1a;
+  --navy-2:  #0e1628;
+  --navy-3:  #141e35;
+  --teal:    #06d6a0;
+  --teal-d:  #04a87e;
+  --amber:   #f59e0b;
+  --rose:    #fb4f4f;
+  --text:    #e8edf8;
+  --muted:   #7a8aaa;
+  --border:  rgba(255,255,255,0.07);
+  --font-h:  'Outfit', sans-serif;
+  --font-b:  'DM Sans', sans-serif;
+  --font-m:  'DM Mono', monospace;
+}
+
+/* ─── Base overrides ──────────────────────────────────────── */
+body {
+  font-family: var(--font-b);
+  background: var(--navy);
+  color: var(--text);
+}
+
+/* ─── Animated hex-grid background ───────────────────────── */
+.sg-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--navy);
+  padding: 120px 0 80px;
+}
+
+.sg-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 70% 40%, rgba(6,214,160,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(6,214,160,0.04) 0%, transparent 50%);
+  z-index: 0;
+}
+
+.sg-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(6,214,160,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,214,160,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  z-index: 0;
+}
+
+/* Glowing orb */
+.sg-orb {
+  position: absolute;
+  right: 8%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 460px;
+  height: 460px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%,
+    rgba(6,214,160,0.18) 0%,
+    rgba(6,214,160,0.06) 40%,
+    transparent 70%);
+  border: 1px solid rgba(6,214,160,0.12);
+  z-index: 1;
+  animation: orb-pulse 6s ease-in-out infinite;
+}
+
+.sg-orb::after {
+  content: '';
+  position: absolute;
+  inset: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(6,214,160,0.08);
+  animation: orb-pulse 6s ease-in-out infinite reverse;
+}
+
+.sg-shield-wrap {
+  position: absolute;
+  right: 8%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 460px;
+  height: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.sg-shield-icon {
+  font-size: 160px;
+  color: var(--teal);
+  opacity: 0.18;
+  filter: blur(0px);
+  animation: shield-float 4s ease-in-out infinite;
+}
+
+.sg-scan-line {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.sg-scan-line::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(6,214,160,0.6), transparent);
+  animation: scan 3s linear infinite;
+  top: 0;
+}
+
+@keyframes scan {
+  0%   { top: 0%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes orb-pulse {
+  0%, 100% { transform: translateY(-50%) scale(1); opacity: 1; }
+  50%       { transform: translateY(-50%) scale(1.04); opacity: 0.85; }
+}
+
+@keyframes shield-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+
+/* ─── Hero content ────────────────────────────────────────── */
+.sg-hero .container { position: relative; z-index: 3; }
+
+.sg-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-m);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  background: rgba(6,214,160,0.1);
+  border: 1px solid rgba(6,214,160,0.2);
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 28px;
+  animation: fade-up 0.6s ease both;
+}
+
+.sg-eyebrow-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: blink 2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.sg-hero h1 {
+  font-family: var(--font-h);
+  font-weight: 800;
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 24px;
+  animation: fade-up 0.6s 0.1s ease both;
+}
+
+.sg-hero h1 em {
+  font-style: normal;
+  color: var(--teal);
+}
+
+.sg-hero .lead {
+  font-size: 1.1rem;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 500px;
+  margin-bottom: 40px;
+  font-weight: 300;
+  animation: fade-up 0.6s 0.2s ease both;
+}
+
+.sg-cta-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  animation: fade-up 0.6s 0.3s ease both;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────── */
+.btn-teal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--teal);
+  color: #061210;
+  font-family: var(--font-b);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 13px 28px;
+  border-radius: 10px;
+  border: none;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: 0 0 0 0 rgba(6,214,160,0.4);
+}
+
+.btn-teal:hover {
+  background: var(--teal-d);
+  color: #061210;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(6,214,160,0.3);
+}
+
+.btn-outline-sg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-b);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 13px 28px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-outline-sg:hover {
+  border-color: rgba(6,214,160,0.3);
+  color: var(--teal);
+  background: rgba(6,214,160,0.05);
+  transform: translateY(-1px);
+}
+
+/* ─── Section styles ──────────────────────────────────────── */
+.sg-section {
+  padding: 96px 0;
+}
+
+.sg-section-alt {
+  background: var(--navy-2);
+}
+
+.sg-label {
+  font-family: var(--font-m);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 12px;
+}
+
+.sg-section-title {
+  font-family: var(--font-h);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.sg-section-sub {
+  font-size: 1rem;
+  color: var(--muted);
+  font-weight: 300;
+  max-width: 480px;
+  margin: 0 auto 56px;
+  line-height: 1.7;
+}
+
+/* ─── Feature Cards ───────────────────────────────────────── */
+.sg-feature-card {
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sg-feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 16px 16px 0 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.sg-feature-card:hover {
+  border-color: rgba(6,214,160,0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.4);
+}
+
+.sg-feature-card:hover::before { opacity: 1; }
+
+.card-teal::before   { background: var(--teal); }
+.card-amber::before  { background: var(--amber); }
+.card-rose::before   { background: var(--rose); }
+.card-purple::before { background: #a78bfa; }
+
+.sg-feature-icon {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.icon-teal   { background: rgba(6,214,160,0.12); color: var(--teal); }
+.icon-amber  { background: rgba(245,158,11,0.12); color: var(--amber); }
+.icon-rose   { background: rgba(251,79,79,0.12);  color: var(--rose); }
+.icon-purple { background: rgba(167,139,250,0.12); color: #a78bfa; }
+
+.sg-feature-card h4 {
+  font-family: var(--font-h);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.sg-feature-card p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.65;
+  flex-grow: 1;
+  margin-bottom: 24px;
+}
+
+.sg-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--teal);
+  text-decoration: none;
+  transition: gap 0.2s;
+}
+
+.sg-card-link:hover { gap: 10px; color: var(--teal); }
+
+/* ─── Stats ───────────────────────────────────────────────── */
+.sg-stats {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sg-stats::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(6,214,160,0.05) 0%, transparent 60%);
+}
+
+.sg-stat-item {
+  text-align: center;
+  position: relative;
+}
+
+.sg-stat-item + .sg-stat-item {
+  border-left: 1px solid var(--border);
+}
+
+.sg-stat-number {
+  font-family: var(--font-h);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 800;
+  color: var(--teal);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.sg-stat-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sg-db-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-m);
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+.sg-db-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 8px rgba(6,214,160,0.6);
+  animation: blink 2s ease-in-out infinite;
+}
+
+/* ─── Warning section ─────────────────────────────────────── */
+.sg-warning-card {
+  background: rgba(251,79,79,0.05);
+  border: 1px solid rgba(251,79,79,0.15);
+  border-radius: 16px;
+  padding: 32px 36px;
+}
+
+.sg-warning-title {
+  font-family: var(--font-h);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--rose);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sg-warning-list {
+  list-style: none;
+  padding: 0; margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sg-warning-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #c0c8d8;
+  line-height: 1.5;
+}
+
+.sg-warning-list li::before {
+  content: '›';
+  color: var(--rose);
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+/* ─── CTA section ─────────────────────────────────────────── */
+.sg-cta-card {
+  border-radius: 16px;
+  padding: 36px 32px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sg-cta-card h4 {
+  font-family: var(--font-h);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.sg-cta-card p {
+  font-size: 0.88rem;
+  opacity: 0.75;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.cta-report  { background: linear-gradient(135deg, #1a0e1e 0%, #200a0a 100%); border: 1px solid rgba(251,79,79,0.2); }
+.cta-resource { background: linear-gradient(135deg, #0a151a 0%, #071520 100%); border: 1px solid rgba(6,214,160,0.15); }
+
+/* ─── Alert info boxes ────────────────────────────────────── */
+.sg-info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.chip-info    { background: rgba(6,214,160,0.1); border: 1px solid rgba(6,214,160,0.2); color: var(--teal); }
+.chip-warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: var(--amber); }
+
+/* ─── Animations ──────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Footer override ─────────────────────────────────────── */
+footer {
+  background: var(--navy-2) !important;
+  border-top: 1px solid var(--border);
+}
+
+/* ─── Responsive ──────────────────────────────────────────── */
+@media (max-width: 991px) {
+  .sg-orb, .sg-shield-wrap { display: none; }
+  .sg-hero { min-height: auto; padding: 100px 0 60px; }
+  .sg-stat-item + .sg-stat-item { border-left: none; border-top: 1px solid var(--border); padding-top: 24px; margin-top: 24px; }
+  .sg-stats { padding: 32px 24px; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="hero-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">Protect Yourself from Online Scams</h1>
-                <p class="lead mb-4">Learn to identify, prevent, and report online scams. Stay informed and stay safe in the digital world.</p>
-                <div class="d-flex gap-3">
-                    <a href="/awareness" class="btn btn-primary btn-lg">
-                        <i class="fas fa-lightbulb"></i> Learn About Scams
-                    </a>
-                    <a href="/checker" class="btn btn-warning btn-lg">
-                        <i class="fas fa-search"></i> Check for Scams
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=400&fit=crop" alt="Online Security" class="img-fluid rounded shadow">
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="container my-5">
-    <div class="row text-center mb-5">
-        <div class="col-12">
-            <h2 class="fw-bold mb-3">Why Scam Awareness Matters</h2>
-            <p class="text-muted">Millions of people fall victim to online scams every year. Knowledge is your best defense.</p>
-        </div>
-    </div>
+<!-- ══════════════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════════════ -->
+<section class="sg-hero">
+  <div class="sg-hero-bg"></div>
+  <div class="sg-grid-overlay"></div>
 
-    <div class="row g-4 mb-5 align-items-stretch">
-        <div class="col-12 col-sm-6 col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon bg-primary">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <h4>Learn & Educate</h4>
-                <p>Discover the most common online scams and how to recognize them before it's too late.</p>
-                <a href="/awareness" class="btn btn-sm btn-outline-primary">Explore Scams</a>
-            </div>
+  <!-- Decorative orb + shield -->
+  <div class="sg-orb"></div>
+  <div class="sg-shield-wrap">
+    <div class="sg-scan-line"></div>
+    <i class="fas fa-shield-alt sg-shield-icon"></i>
+  </div>
+
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+
+        <div class="sg-eyebrow">
+          <span class="sg-eyebrow-dot"></span>
+          AI-Powered Scam Protection
         </div>
-        <div class="col-12 col-sm-6 col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon bg-success">
-                    <i class="fas fa-brain"></i>
-                </div>
-                <h4>Test Your Knowledge</h4>
-                <p>Take our interactive quiz to assess your ability to identify and avoid online scams.</p>
-                <a href="/quiz" class="btn btn-sm btn-outline-success">Take Quiz</a>
-            </div>
+
+        <h1>
+          Stay one step ahead of <em>online scams</em>
+        </h1>
+
+        <p class="lead">
+          Identify, verify, and report digital threats before they reach you.
+          Powered by Gemini AI — free, fast, and built for everyone.
+        </p>
+
+        <div class="sg-cta-row">
+          <a href="/checker" class="btn-teal">
+            <i class="fas fa-search"></i> Scan for Scams
+          </a>
+          <a href="/awareness" class="btn-outline-sg">
+            <i class="fas fa-lightbulb"></i> Learn How
+          </a>
         </div>
-        <div class="col-12 col-sm-6 col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon bg-warning">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h4>Verify Suspicious Content</h4>
-                <p>Use our scam checker to analyze emails, URLs, and messages for potential threats.</p>
-                <a href="/checker" class="btn btn-sm btn-outline-warning">Check Now</a>
-            </div>
-        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     LIVE STATS
+══════════════════════════════════════════════════════════ -->
+<section class="sg-section" style="padding-bottom: 0;">
+  <div class="container reveal">
+    <div class="text-center mb-4">
+      <div class="sg-db-status">
+        <span class="sg-db-dot" id="db-dot"></span>
+        <span id="db-status-text">Connecting to database…</span>
+      </div>
     </div>
 
-    <div class="stats-section">
-        <div class="row text-center">
-            <div class="col-md-3 col-6 mb-4">
-                <div class="stat-card">
-                    <h3 class="stat-number">10</h3>
-                    <p class="stat-label">Scam Types Covered</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-4">
-                <div class="stat-card">
-                    <h3 class="stat-number">60</h3>
-                    <p class="stat-label">Quiz Questions</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-4">
-                <div class="stat-card">
-                    <h3 class="stat-number">2</h3>
-                    <p class="stat-label">Checker Tools</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-4">
-                <div class="stat-card">
-                    <h3 class="stat-number">24/7</h3>
-                    <p class="stat-label">Protection Tools</p>
-                </div>
-            </div>
+    <div class="sg-stats">
+      <div class="row text-center">
+        <div class="col-md-3 col-6 sg-stat-item mb-4 mb-md-0">
+          <div class="sg-stat-number" id="stat-total-reports">—</div>
+          <div class="sg-stat-label">Total Reports</div>
         </div>
+        <div class="col-md-3 col-6 sg-stat-item mb-4 mb-md-0">
+          <div class="sg-stat-number" id="stat-high-risk">—</div>
+          <div class="sg-stat-label">High-Risk Detected</div>
+        </div>
+        <div class="col-md-3 col-6 sg-stat-item">
+          <div class="sg-stat-number" id="stat-money-lost">—</div>
+          <div class="sg-stat-label">Money Lost Reported</div>
+        </div>
+        <div class="col-md-3 col-6 sg-stat-item">
+          <div class="sg-stat-number" id="stat-this-month">—</div>
+          <div class="sg-stat-label">Reports This Month</div>
+        </div>
+      </div>
+
+      <div class="row mt-4 pt-4" style="border-top: 1px solid var(--border);">
+        <div class="col-md-6 mb-3 mb-md-0">
+          <div class="sg-info-chip chip-info w-100 justify-content-center">
+            <i class="fas fa-chart-bar"></i>
+            Most common: <strong id="stat-top-scam" class="ms-1">Loading…</strong>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sg-info-chip chip-warning w-100 justify-content-center">
+            <i class="fas fa-phone"></i>
+            Top contact method: <strong id="stat-contact-method" class="ms-1">Loading…</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     FEATURES
+══════════════════════════════════════════════════════════ -->
+<section class="sg-section">
+  <div class="container">
+    <div class="text-center reveal">
+      <div class="sg-label">What ScamGuard does</div>
+      <h2 class="sg-section-title">Everything you need to stay safe</h2>
+      <p class="sg-section-sub">
+        From identifying phishing emails to verifying suspicious contacts —
+        all your tools in one place.
+      </p>
     </div>
 
-    <div class="alert-section mt-5">
-        <div class="alert alert-danger d-flex align-items-center" role="alert">
-            <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
-            <div>
-                <h5 class="alert-heading mb-2">⚠️ Common Warning Signs</h5>
-                <ul class="mb-0">
-                    <li>Requests for immediate action or payment</li>
-                    <li>Too good to be true offers</li>
-                    <li>Requests for personal or financial information</li>
-                    <li>Poor grammar and spelling errors</li>
-                    <li>Suspicious links or attachments</li>
-                </ul>
-            </div>
+    <div class="row g-4">
+      <div class="col-sm-6 col-lg-3 reveal" style="transition-delay: 0s;">
+        <div class="sg-feature-card card-teal">
+          <div class="sg-feature-icon icon-teal">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+          <h4>Learn &amp; Educate</h4>
+          <p>Explore the 10 most common online scam types with real examples and red-flag patterns.</p>
+          <a href="/awareness" class="sg-card-link">
+            Explore scams <i class="fas fa-arrow-right fa-xs"></i>
+          </a>
         </div>
-    </div>
+      </div>
 
-    <div class="cta-section mt-5">
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <div class="cta-card bg-primary text-white">
-                    <h4><i class="fas fa-flag"></i> Report a Scam</h4>
-                    <p>Help protect others by reporting scams you've encountered.</p>
-                    <a href="/report" class="btn btn-light">Report Now</a>
-                </div>
-            </div>
-            <div class="col-md-6 mb-3">
-                <div class="cta-card bg-info text-white">
-                    <h4><i class="fas fa-book"></i> Additional Resources</h4>
-                    <p>Access helpful links and contact information for reporting scams.</p>
-                    <a href="/resources" class="btn btn-light">View Resources</a>
-                </div>
-            </div>
+      <div class="col-sm-6 col-lg-3 reveal" style="transition-delay: 0.08s;">
+        <div class="sg-feature-card card-purple">
+          <div class="sg-feature-icon icon-purple">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h4>Test Your Knowledge</h4>
+          <p>Take our interactive quiz across 3 difficulty levels to sharpen your scam-spotting instincts.</p>
+          <a href="/quiz" class="sg-card-link" style="color: #a78bfa;">
+            Take the quiz <i class="fas fa-arrow-right fa-xs"></i>
+          </a>
         </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3 reveal" style="transition-delay: 0.16s;">
+        <div class="sg-feature-card card-amber">
+          <div class="sg-feature-icon icon-amber">
+            <i class="fas fa-robot"></i>
+          </div>
+          <h4>AI Scam Checker</h4>
+          <p>Paste any email, message, or URL and get an instant Gemini AI analysis for scam indicators.</p>
+          <a href="/checker" class="sg-card-link" style="color: var(--amber);">
+            Check now <i class="fas fa-arrow-right fa-xs"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3 reveal" style="transition-delay: 0.24s;">
+        <div class="sg-feature-card card-rose">
+          <div class="sg-feature-icon icon-rose">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <h4>Verify Contacts</h4>
+          <p>Check if a phone number or email appears in our database of reported scammer contacts.</p>
+          <a href="/verify" class="sg-card-link" style="color: var(--rose);">
+            Verify contact <i class="fas fa-arrow-right fa-xs"></i>
+          </a>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     WARNING SIGNS + CTA
+══════════════════════════════════════════════════════════ -->
+<section class="sg-section sg-section-alt">
+  <div class="container">
+    <div class="row g-4 align-items-center">
+
+      <!-- Warning signs -->
+      <div class="col-lg-6 reveal">
+        <div class="sg-label">Stay alert</div>
+        <h2 class="sg-section-title" style="font-size: 1.9rem;">Common warning signs</h2>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; line-height: 1.7;">
+          Recognising these patterns is your first line of defence against scammers.
+        </p>
+        <div class="sg-warning-card">
+          <div class="sg-warning-title">
+            <i class="fas fa-exclamation-triangle"></i> Red flags to watch for
+          </div>
+          <ul class="sg-warning-list">
+            <li>Requests for immediate action or payment under pressure</li>
+            <li>Offers that sound too good to be true</li>
+            <li>Requests for personal or financial information via email/text</li>
+            <li>Poor grammar, spelling errors, or unusual phrasing</li>
+            <li>Suspicious links, unfamiliar domains, or hidden redirects</li>
+            <li>Urgency tactics — "Your account will be deleted in 24 hours"</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- CTA cards -->
+      <div class="col-lg-6 reveal" style="transition-delay: 0.1s;">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="sg-cta-card cta-report">
+              <h4><i class="fas fa-flag me-2" style="color: var(--rose);"></i> Report a Scam</h4>
+              <p>Help protect others by sharing what you've encountered. Every report contributes to our community database.</p>
+              <a href="/report" class="btn-teal" style="align-self: flex-start;">
+                Submit a Report
+              </a>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="sg-cta-card cta-resource">
+              <h4><i class="fas fa-book-open me-2" style="color: var(--teal);"></i> Additional Resources</h4>
+              <p>Access verified links and official contacts for reporting scams to authorities like the FTC and IC3.</p>
+              <a href="/resources" class="btn-outline-sg" style="align-self: flex-start;">
+                View Resources
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+<script>
+/* ── Scroll-reveal ───────────────────────────────── */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const delay = parseFloat(el.style.transitionDelay || 0) * 1000;
+      setTimeout(() => el.classList.add('visible'), delay);
+      revealObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+/* stats.js handles all number animation — no duplicate needed */
+</script>
 {% endblock %}

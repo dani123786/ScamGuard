@@ -1,168 +1,611 @@
 {% extends "base.html" %}
+{% block title %}Report a Scam — ScamGuard{% endblock %}
 
-{% block title %}Report a Scam{% endblock %}
+{% block extra_css %}
+<style>
+:root {
+  --teal:   #06d6a0;
+  --rose:   #fb4f4f;
+  --amber:  #f59e0b;
+  --navy:   #080d1a;
+  --navy-2: #0e1628;
+  --navy-3: #141e35;
+  --border: rgba(255,255,255,0.07);
+  --muted:  #7a8aaa;
+  --font-h: 'Outfit', sans-serif;
+}
+
+.rp-header {
+  background: linear-gradient(135deg, #0a1628 0%, #111d38 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 0 36px;
+}
+.rp-header h1 {
+  font-family: var(--font-h);
+  font-weight: 800;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.rp-header .lead { color: var(--muted); font-size: 0.95rem; font-weight: 300; margin: 0; }
+
+.rp-wrap { max-width: 680px; margin: 0 auto; padding: 40px 20px 60px; }
+
+/* ── Step indicator ──────────────────────────────── */
+.rp-steps {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32px;
+  gap: 0;
+}
+.rp-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+.rp-step-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-h);
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.1);
+  color: var(--muted);
+  background: var(--navy-2);
+  transition: all 0.3s;
+}
+.rp-step-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.3s;
+}
+.rp-step-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+  margin: 0 12px;
+  transition: background 0.3s;
+}
+.rp-step.active .rp-step-num {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #061210;
+}
+.rp-step.active .rp-step-label { color: var(--teal); }
+.rp-step.done .rp-step-num {
+  background: rgba(6,214,160,0.15);
+  border-color: rgba(6,214,160,0.4);
+  color: var(--teal);
+}
+.rp-step.done .rp-step-label { color: rgba(6,214,160,0.7); }
+.rp-step-line.done { background: rgba(6,214,160,0.3); }
+
+/* ── Card shell ──────────────────────────────────── */
+.rp-card {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.rp-card-body { padding: 32px; }
+
+/* ── Step panels ─────────────────────────────────── */
+.rp-pane { display: none; }
+.rp-pane.active { display: block; }
+
+.rp-pane-title {
+  font-family: var(--font-h);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.rp-pane-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+/* ── Form fields ─────────────────────────────────── */
+.rp-field { margin-bottom: 20px; }
+.rp-field:last-child { margin-bottom: 0; }
+
+.rp-field-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+.rp-required { color: var(--rose); margin-left: 3px; }
+
+.rp-select, .rp-input, .rp-textarea {
+  width: 100%;
+  background: var(--navy-3);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px;
+  color: #e8edf8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.rp-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a8aaa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer; }
+.rp-select option { background: #141e35; }
+.rp-textarea { resize: vertical; min-height: 130px; line-height: 1.6; }
+.rp-select:focus, .rp-input:focus, .rp-textarea:focus {
+  border-color: rgba(6,214,160,0.35);
+  box-shadow: 0 0 0 3px rgba(6,214,160,0.08);
+}
+.rp-select::placeholder, .rp-input::placeholder, .rp-textarea::placeholder {
+  color: rgba(122,138,170,0.45);
+}
+
+/* ── Money toggle ────────────────────────────────── */
+.rp-money-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rp-money-opt {
+  position: relative;
+}
+.rp-money-opt input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+}
+.rp-money-opt label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--navy-3);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.rp-money-opt input:checked + label {
+  border-color: rgba(6,214,160,0.35);
+  background: rgba(6,214,160,0.08);
+  color: var(--teal);
+}
+.rp-money-opt label:hover { border-color: rgba(255,255,255,0.15); color: #e8edf8; }
+
+/* ── Amount section ──────────────────────────────── */
+#amount-section {
+  display: none;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+#amount-section.show { display: block; }
+
+/* ── Nav buttons ─────────────────────────────────── */
+.rp-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 32px 24px;
+  border-top: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+
+.btn-rp-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--teal);
+  color: #061210;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 11px 24px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-rp-next:hover { background: #04a87e; transform: translateY(-1px); }
+
+.btn-rp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 11px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-rp-back:hover { color: #e8edf8; border-color: rgba(255,255,255,0.15); }
+
+.btn-rp-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--rose);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 11px 24px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-rp-submit:hover { background: #d43f3f; transform: translateY(-1px); }
+
+/* ── Info banner ─────────────────────────────────── */
+.rp-info-banner {
+  display: flex;
+  gap: 12px;
+  background: rgba(6,214,160,0.06);
+  border: 1px solid rgba(6,214,160,0.15);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: 0.82rem;
+  color: #9fe1cb;
+  line-height: 1.55;
+}
+.rp-info-banner i { color: var(--teal); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Tips accordion ──────────────────────────────── */
+.rp-tips-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: rgba(245,158,11,0.06);
+  border: 1px solid rgba(245,158,11,0.15);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--amber);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background 0.2s;
+}
+.rp-tips-toggle:hover { background: rgba(245,158,11,0.09); }
+.rp-tips-body {
+  display: none;
+  background: rgba(245,158,11,0.04);
+  border: 1px solid rgba(245,158,11,0.1);
+  border-radius: 0 0 10px 10px;
+  padding: 14px 16px;
+  margin-top: -10px;
+  margin-bottom: 8px;
+}
+.rp-tips-body.show { display: block; }
+.rp-tips-body ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.rp-tips-body ul li { font-size: 0.82rem; color: #c0c8d8; display: flex; gap: 8px; line-height: 1.5; }
+.rp-tips-body ul li::before { content: '›'; color: var(--amber); font-weight: 700; flex-shrink: 0; }
+
+/* ── Success screen ──────────────────────────────── */
+#success-message { display: none; }
+.rp-success {
+  text-align: center;
+  padding: 48px 32px;
+}
+.rp-success-icon {
+  width: 72px; height: 72px;
+  background: rgba(6,214,160,0.12);
+  border: 2px solid rgba(6,214,160,0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--teal);
+  margin: 0 auto 20px;
+  animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+@keyframes pop-in { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.rp-success h3 {
+  font-family: var(--font-h);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+}
+.rp-success p { font-size: 0.9rem; color: var(--muted); line-height: 1.65; margin-bottom: 24px; max-width: 420px; margin-left: auto; margin-right: auto; }
+.rp-success-links { display: flex; flex-direction: column; gap: 8px; max-width: 320px; margin: 0 auto 24px; }
+.rp-success-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: #e8edf8;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+.rp-success-link:hover { border-color: rgba(6,214,160,0.25); color: var(--teal); }
+.rp-success-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn-home {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--teal); color: #061210;
+  font-weight: 600; font-size: 0.875rem;
+  padding: 10px 22px; border-radius: 10px; border: none;
+  text-decoration: none; transition: all 0.2s;
+}
+.btn-home:hover { background: #04a87e; color: #061210; }
+.btn-resources {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: transparent; color: var(--muted);
+  font-weight: 500; font-size: 0.875rem;
+  padding: 10px 22px; border-radius: 10px;
+  border: 1px solid var(--border); text-decoration: none; transition: all 0.2s;
+}
+.btn-resources:hover { color: #e8edf8; border-color: rgba(255,255,255,0.15); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="container">
-        <h1 class="display-5 fw-bold"><i class="fas fa-flag"></i> Report a Scam</h1>
-        <p class="lead">Help protect others by reporting scams you've encountered</p>
-    </div>
+<div class="rp-header">
+  <div class="container">
+    <h1><i class="fas fa-flag" style="color:var(--rose);margin-right:10px;font-size:1.5rem;"></i>Report a Scam</h1>
+    <p class="lead">Help protect others by sharing what you've encountered</p>
+  </div>
 </div>
 
-<div class="container my-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="report-card">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Your report helps build awareness and protect others in the community. Every report contributes to identifying scam patterns and keeping people safe.
-                    <p class="mb-0 mt-2"><small>All information is kept confidential and used only for awareness purposes.</small></p>
-                </div>
+<div class="rp-wrap">
 
-                <form id="report-form">
-                    <div class="mb-4">
-                        <label class="form-label">Type of Scam <span class="text-danger">*</span></label>
-                        <select class="form-select" id="scam-type" required>
-                            <option value="">Select scam type...</option>
-                            <option value="phishing">Phishing</option>
-                            <option value="romance">Romance Scam</option>
-                            <option value="investment">Investment Scam</option>
-                            <option value="tech_support">Tech Support Scam</option>
-                            <option value="online_shopping">Online Shopping Scam</option>
-                            <option value="lottery">Lottery/Prize Scam</option>
-                            <option value="employment">Employment Scam</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
+  <!-- Step indicator -->
+  <div class="rp-steps" id="rp-step-indicator">
+    <div class="rp-step active" id="step-ind-1">
+      <div class="rp-step-num">1</div>
+      <div class="rp-step-label">Scam Type</div>
+    </div>
+    <div class="rp-step-line" id="line-1"></div>
+    <div class="rp-step" id="step-ind-2">
+      <div class="rp-step-num">2</div>
+      <div class="rp-step-label">Details</div>
+    </div>
+    <div class="rp-step-line" id="line-2"></div>
+    <div class="rp-step" id="step-ind-3">
+      <div class="rp-step-num">3</div>
+      <div class="rp-step-label">Contact</div>
+    </div>
+  </div>
 
-                    <div class="mb-4">
-                        <label class="form-label">How did they contact you? <span class="text-danger">*</span></label>
-                        <select class="form-select" id="contact-method" required>
-                            <option value="">Select method...</option>
-                            <option value="email">Email</option>
-                            <option value="phone">Phone Call</option>
-                            <option value="text">Text Message</option>
-                            <option value="social">Social Media</option>
-                            <option value="website">Website</option>
-                            <option value="app">Mobile App</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
+  <!-- Form card -->
+  <form id="report-form">
+    <div class="rp-card">
+      <div class="rp-card-body">
 
-                    <div class="mb-4">
-                        <label class="form-label">Description <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="description" rows="6" required
-                                  placeholder="Please describe what happened, including any suspicious details..."></textarea>
-                        <small class="form-text text-muted">Include as much detail as possible</small>
-                    </div>
+        <!-- STEP 1: Scam type -->
+        <div class="rp-pane active" id="rp-pane-1">
+          <div class="rp-pane-title">What type of scam was it?</div>
+          <div class="rp-pane-sub">Select the category that best describes what happened</div>
 
-                    <div class="mb-4">
-                        <label class="form-label">Scammer Contact Information (if available)</label>
-                        <input type="text" class="form-control" id="scammer-contact" 
-                               placeholder="Email, phone number, website, username, etc.">
-                    </div>
+          <div class="rp-info-banner">
+            <i class="fas fa-shield-alt"></i>
+            <span>Your report is kept confidential and helps build our community database to protect others.</span>
+          </div>
 
-                    <div class="mb-4">
-                        <label class="form-label">Did you lose money?</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="lost-money" id="lost-yes" value="yes">
-                            <label class="form-check-label" for="lost-yes">Yes</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="lost-money" id="lost-no" value="no" checked>
-                            <label class="form-check-label" for="lost-no">No</label>
-                        </div>
-                    </div>
+          <div class="rp-field">
+            <label class="rp-field-label">Scam type <span class="rp-required">*</span></label>
+            <select class="rp-select" id="scam-type" required>
+              <option value="">Select scam type…</option>
+              <option value="phishing">Phishing</option>
+              <option value="romance">Romance Scam</option>
+              <option value="investment">Investment Scam</option>
+              <option value="tech_support">Tech Support Scam</option>
+              <option value="online_shopping">Online Shopping Scam</option>
+              <option value="lottery">Lottery / Prize Scam</option>
+              <option value="employment">Employment Scam</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
 
-                    <div class="mb-4" id="amount-section" style="display: none;">
-                        <label class="form-label">Approximate Amount Lost</label>
-                        <input type="text" class="form-control" id="amount" placeholder="$0.00">
-                    </div>
+          <div class="rp-field">
+            <label class="rp-field-label">How did they contact you? <span class="rp-required">*</span></label>
+            <select class="rp-select" id="contact-method" required>
+              <option value="">Select contact method…</option>
+              <option value="email">Email</option>
+              <option value="phone">Phone Call</option>
+              <option value="text">Text Message</option>
+              <option value="social">Social Media</option>
+              <option value="website">Website</option>
+              <option value="app">Mobile App</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
 
-                    <div class="mb-4">
-                        <label class="form-label">Your Email (optional)</label>
-                        <input type="email" class="form-control" id="reporter-email" 
-                               placeholder="your@email.com">
-                        <small class="form-text text-muted">Only if you want us to follow up with you</small>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">When did this occur?</label>
-                        <input type="date" class="form-control" id="incident-date">
-                    </div>
-
-                    <div class="alert alert-warning">
-                        <strong><i class="fas fa-exclamation-triangle"></i> Important:</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>Provide as much detail as possible to help others recognize this scam</li>
-                            <li>If you lost money, contact your bank immediately</li>
-                            <li>Keep all evidence (emails, screenshots, receipts)</li>
-                            <li>To report directly to authorities, visit <a href="https://reportfraud.ftc.gov" target="_blank">reportfraud.ftc.gov</a> or <a href="https://www.ic3.gov" target="_blank">ic3.gov</a></li>
-                        </ul>
-                    </div>
-
-                    <button type="submit" class="btn btn-danger btn-lg w-100">
-                        <i class="fas fa-paper-plane"></i> Submit Report
-                    </button>
-                </form>
-
-                <div id="success-message" style="display: none;" class="mt-4">
-                    <div class="alert alert-success">
-                        <h5><i class="fas fa-check-circle"></i> Thank You for Your Report!</h5>
-                        <p>Your report has been recorded and will help others recognize and avoid this type of scam. Together, we can build a safer online community.</p>
-                        <p class="mb-0">Want to take it further? Report directly to the authorities:</p>
-                        <ul class="mt-2 mb-0">
-                            <li><a href="https://reportfraud.ftc.gov" target="_blank">Federal Trade Commission (FTC)</a></li>
-                            <li><a href="https://www.ic3.gov" target="_blank">Internet Crime Complaint Center (IC3)</a></li>
-                        </ul>
-                    </div>
-                    <div class="text-center mt-3">
-                        <a href="/" class="btn btn-primary">Return to Home</a>
-                        <a href="/resources" class="btn btn-outline-primary">View Resources</a>
-                    </div>
-                </div>
-            </div>
+          <div class="rp-field">
+            <label class="rp-field-label">When did this occur?</label>
+            <input type="date" class="rp-input" id="incident-date">
+          </div>
         </div>
+
+        <!-- STEP 2: Details -->
+        <div class="rp-pane" id="rp-pane-2">
+          <div class="rp-pane-title">Tell us what happened</div>
+          <div class="rp-pane-sub">The more detail you provide, the more it helps others</div>
+
+          <div class="rp-field">
+            <label class="rp-field-label">Description <span class="rp-required">*</span></label>
+            <textarea class="rp-textarea" id="description" required
+              placeholder="Describe what happened — include any suspicious details, what you were asked to do, or what made you suspicious…"></textarea>
+          </div>
+
+          <div class="rp-field">
+            <label class="rp-field-label">Scammer contact info <span style="color:var(--muted);font-size:0.7rem;">(optional)</span></label>
+            <input type="text" class="rp-input" id="scammer-contact"
+              placeholder="Email address, phone number, website, username…">
+          </div>
+
+          <div class="rp-field">
+            <label class="rp-field-label">Did you lose money?</label>
+            <div class="rp-money-toggle">
+              <div class="rp-money-opt">
+                <input type="radio" name="lost-money" id="lost-no" value="no" checked>
+                <label for="lost-no"><i class="fas fa-times-circle"></i> No</label>
+              </div>
+              <div class="rp-money-opt">
+                <input type="radio" name="lost-money" id="lost-yes" value="yes">
+                <label for="lost-yes"><i class="fas fa-exclamation-circle"></i> Yes</label>
+              </div>
+            </div>
+          </div>
+
+          <div id="amount-section" class="rp-field">
+            <label class="rp-field-label">Approximate amount lost</label>
+            <input type="text" class="rp-input" id="amount" placeholder="e.g. $500">
+          </div>
+        </div>
+
+        <!-- STEP 3: Contact -->
+        <div class="rp-pane" id="rp-pane-3">
+          <div class="rp-pane-title">Almost done</div>
+          <div class="rp-pane-sub">Optional contact info if you'd like us to follow up</div>
+
+          <div class="rp-field">
+            <label class="rp-field-label">Your email <span style="color:var(--muted);font-size:0.7rem;">(optional)</span></label>
+            <input type="email" class="rp-input" id="reporter-email" placeholder="your@email.com">
+            <p style="font-size:0.78rem;color:rgba(122,138,170,0.55);margin-top:6px;">Only used if we need to follow up about your report.</p>
+          </div>
+
+          <!-- Tips accordion -->
+          <button type="button" class="rp-tips-toggle" onclick="toggleTips(this)">
+            <span><i class="fas fa-exclamation-triangle" style="margin-right:7px;"></i>Important tips before you submit</span>
+            <i class="fas fa-chevron-down" style="font-size:11px;transition:transform 0.2s;" id="tips-chevron"></i>
+          </button>
+          <div class="rp-tips-body" id="rp-tips">
+            <ul>
+              <li>If you lost money, contact your bank immediately to dispute the transaction</li>
+              <li>Keep all evidence — emails, screenshots, receipts — in a safe place</li>
+              <li>Report directly to authorities at <a href="https://reportfraud.ftc.gov" target="_blank" style="color:var(--amber);">reportfraud.ftc.gov</a> or <a href="https://www.ic3.gov" target="_blank" style="color:var(--amber);">ic3.gov</a></li>
+            </ul>
+          </div>
+        </div>
+
+      </div><!-- /.rp-card-body -->
+
+      <!-- Navigation footer -->
+      <div class="rp-nav">
+        <button type="button" class="btn-rp-back" id="btn-back" onclick="rpBack()" style="visibility:hidden;">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <div style="font-size:0.78rem;color:var(--muted);" id="rp-step-counter">Step 1 of 3</div>
+        <button type="button" class="btn-rp-next" id="btn-next" onclick="rpNext()">
+          Next <i class="fas fa-arrow-right"></i>
+        </button>
+        <button type="submit" class="btn-rp-submit" id="btn-submit" style="display:none;">
+          <i class="fas fa-paper-plane"></i> Submit Report
+        </button>
+      </div>
+    </div><!-- /.rp-card -->
+  </form>
+
+  <!-- Success screen -->
+  <div id="success-message">
+    <div class="rp-card">
+      <div class="rp-success">
+        <div class="rp-success-icon"><i class="fas fa-check"></i></div>
+        <h3>Thank you for your report!</h3>
+        <p>Your report has been recorded and will help others recognise and avoid this scam. Every submission strengthens our community protection.</p>
+        <div class="rp-success-links">
+          <a href="https://reportfraud.ftc.gov" target="_blank" class="rp-success-link">
+            <i class="fas fa-external-link-alt" style="color:var(--teal);font-size:12px;"></i>
+            Report to the FTC (reportfraud.ftc.gov)
+          </a>
+          <a href="https://www.ic3.gov" target="_blank" class="rp-success-link">
+            <i class="fas fa-external-link-alt" style="color:var(--teal);font-size:12px;"></i>
+            File with IC3 (ic3.gov)
+          </a>
+        </div>
+        <div class="rp-success-btns">
+          <a href="/" class="btn-home"><i class="fas fa-home"></i> Return Home</a>
+          <a href="/resources" class="btn-resources"><i class="fas fa-book"></i> View Resources</a>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+
+</div><!-- /.rp-wrap -->
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/report.js') }}"></script>
 <script>
-document.querySelectorAll('input[name="lost-money"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-        document.getElementById('amount-section').style.display = 
-            e.target.value === 'yes' ? 'block' : 'none';
-    });
-});
+let currentStep = 1;
+const totalSteps = 3;
 
-document.getElementById('report-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = {
-        scam_type: document.getElementById('scam-type').value,
-        contact_method: document.getElementById('contact-method').value,
-        description: document.getElementById('description').value,
-        scammer_contact: document.getElementById('scammer-contact').value,
-        lost_money: document.querySelector('input[name="lost-money"]:checked').value,
-        amount: document.getElementById('amount').value,
-        reporter_email: document.getElementById('reporter-email').value,
-        incident_date: document.getElementById('incident-date').value
-    };
-    
-    const response = await fetch('/api/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-        document.getElementById('report-form').style.display = 'none';
-        document.getElementById('success-message').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+function updateStepUI() {
+  for (let i = 1; i <= totalSteps; i++) {
+    const pane = document.getElementById('rp-pane-' + i);
+    const ind  = document.getElementById('step-ind-' + i);
+    pane.classList.toggle('active', i === currentStep);
+    ind.classList.remove('active','done');
+    if (i === currentStep) ind.classList.add('active');
+    if (i < currentStep)  ind.classList.add('done');
+    if (i < totalSteps) {
+      const line = document.getElementById('line-' + i);
+      line.classList.toggle('done', i < currentStep);
     }
-});
+  }
+  document.getElementById('rp-step-counter').textContent = 'Step ' + currentStep + ' of ' + totalSteps;
+  document.getElementById('btn-back').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+  document.getElementById('btn-next').style.display   = currentStep < totalSteps ? 'inline-flex' : 'none';
+  document.getElementById('btn-submit').style.display = currentStep === totalSteps ? 'inline-flex' : 'none';
+}
+
+function rpNext() {
+  if (currentStep === 1) {
+    if (!document.getElementById('scam-type').value) { highlight('scam-type'); return; }
+    if (!document.getElementById('contact-method').value) { highlight('contact-method'); return; }
+  }
+  if (currentStep === 2) {
+    if (!document.getElementById('description').value.trim()) { highlight('description'); return; }
+  }
+  if (currentStep < totalSteps) { currentStep++; updateStepUI(); window.scrollTo({top:0,behavior:'smooth'}); }
+}
+
+function rpBack() {
+  if (currentStep > 1) { currentStep--; updateStepUI(); window.scrollTo({top:0,behavior:'smooth'}); }
+}
+
+function highlight(id) {
+  const el = document.getElementById(id);
+  el.style.borderColor = 'rgba(251,79,79,0.5)';
+  el.focus();
+  setTimeout(() => { el.style.borderColor = ''; }, 2000);
+}
+
+function toggleTips(btn) {
+  const body = document.getElementById('rp-tips');
+  const chevron = document.getElementById('tips-chevron');
+  body.classList.toggle('show');
+  chevron.style.transform = body.classList.contains('show') ? 'rotate(180deg)' : '';
+}
+
+updateStepUI();
 </script>
 {% endblock %}

@@ -1,165 +1,141 @@
-from flask import Flask, render_template, request, jsonify
+"""
+ScamGuard AI — Flask application entry point.
+
+Responsibilities:
+  1. Load environment variables
+  2. Create the Flask app
+  3. Initialise all shared objects in routes/extensions.py
+  4. Register all blueprints
+"""
 import os
-from datetime import datetime
-from data.scams import SCAMS_DATA
-from data.practice_quizzes import PRACTICE_QUIZZES
-from data.quiz_questions import QUIZ_QUESTIONS
-from data.checkers import check_email, check_message, evaluate_risk
+import warnings
+from dotenv import load_dotenv
+load_dotenv()
+
+from flask import Flask
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# ---------------------------------------------------------------------------
+# Secret key — MUST be set via environment variable in production
+# ---------------------------------------------------------------------------
+_secret = os.environ.get('SECRET_KEY')
+if not _secret:
+    _secret = 'scamguard-default-secret-2026'
+    warnings.warn(
+        "[SECURITY] SECRET_KEY is not set in environment variables. "
+        "Using the hardcoded default — this is UNSAFE in production. "
+        "Set SECRET_KEY in your .env or deployment config.",
+        stacklevel=1
+    )
+app.secret_key = _secret
 
-@app.route('/awareness')
-def awareness():
-    return render_template('awareness.html', scams=SCAMS_DATA)
+# ---------------------------------------------------------------------------
+# Rate limiter (must be init'd before blueprints are registered)
+# ---------------------------------------------------------------------------
+try:
+    from services.rate_limiter import limiter
+    limiter.init_app(app)
+    print("[+] Rate limiter initialised")
+except Exception as _rl_err:
+    print(f"[!] Rate limiter init failed: {_rl_err}")
 
-@app.route('/awareness/<scam_type>')
-def scam_detail(scam_type):
-    if scam_type in SCAMS_DATA:
-        # Get practice quiz questions for this scam type
-        practice_questions = PRACTICE_QUIZZES.get(scam_type, [])
-        
-        # Check if video exists for this scam type
-        video_path = os.path.join('static', 'videos', f'{scam_type}.mp4')
-        video_available = os.path.exists(video_path)
-        
-        return render_template('scam_detail.html', 
-                             scam_type=scam_type, 
-                             scam=SCAMS_DATA[scam_type],
-                             practice_questions=practice_questions,
-                             video_available=video_available)
-    return "Scam type not found", 404
-
-@app.route('/quiz')
-def quiz():
-    return render_template('quiz.html')
-
-@app.route('/api/quiz/questions')
-def get_quiz_questions():
-    difficulty = request.args.get('difficulty', 'easy')
-    if difficulty in QUIZ_QUESTIONS:
-        return jsonify(QUIZ_QUESTIONS[difficulty])
-    return jsonify(QUIZ_QUESTIONS['easy'])
-
-@app.route('/api/quiz/submit', methods=['POST'])
-def submit_quiz():
-    data = request.json
-    answers = data.get('answers', [])
-    difficulty = data.get('difficulty', 'easy')
-    user_name = data.get('name', 'Anonymous')
-    
-    questions = QUIZ_QUESTIONS.get(difficulty, QUIZ_QUESTIONS['easy'])
-    score = sum(1 for i, ans in enumerate(answers) if ans == questions[i]['correct'])
-    total = len(questions)
-    percentage = (score / total) * 100
-    
-    return jsonify({
-        'score': score,
-        'total': total,
-        'percentage': percentage,
-        'name': user_name,
-        'difficulty': difficulty,
-        'results': [
-            {
-                'correct': answers[i] == questions[i]['correct'],
-                'explanation': questions[i]['explanation']
-            }
-            for i in range(len(answers))
-        ]
-    })
-
-@app.route('/checker')
-def checker():
-    return render_template('checker.html')
-
-@app.route('/api/check', methods=['POST'])
-def check_scam():
-    data = request.json
-    check_type = data.get('type')
-    content = data.get('content', '')
-
-    if check_type == 'email':
-        risk_score, warnings = check_email(content)
-    elif check_type == 'message':
-        risk_score, warnings = check_message(content)
+# ---------------------------------------------------------------------------
+# Supabase
+# ---------------------------------------------------------------------------
+supabase_client = None
+try:
+    from supabase import create_client
+    supabase_url = os.environ.get('SUPABASE_URL')
+    supabase_key = os.environ.get('SUPABASE_KEY')
+    if supabase_url and supabase_key:
+        try:
+            supabase_client = create_client(supabase_url, supabase_key)
+            print("[+] Supabase connected successfully!")
+        except Exception as e:
+            print(f"[!] Supabase connection failed: {e}")
     else:
-        return jsonify({'error': 'Invalid check type'}), 400
+        print("[!] Supabase credentials not found in environment")
+except ImportError:
+    print("Warning: Supabase not installed. Reports will save locally only.")
 
-    return jsonify(evaluate_risk(risk_score, warnings))
+# ---------------------------------------------------------------------------
+# Shared objects — populate routes/extensions.py module-level vars
+# ---------------------------------------------------------------------------
+import routes.extensions as ext
 
-@app.route('/resources')
-def resources():
-    return render_template('resources.html')
+from services.cache_manager import SimpleCacheManager
+ext._cache_manager = SimpleCacheManager()
 
-@app.route('/report')
-def report():
-    return render_template('report.html')
+try:
+    from services.content_service import ContentService
+    ext.content_service = ContentService(supabase_client, ext._cache_manager)
+    ext.content_service.fallback_enabled = False
+    print("[+] ContentService initialised (database-only mode)")
+except Exception as _e:
+    ext.content_service = None
+    print(f"[!] ContentService init failed: {_e}")
 
-@app.route('/api/report', methods=['POST'])
-def submit_report():
-    data = request.json
-    
-    report_body = f"""
-    NEW SCAM REPORT SUBMISSION
-    ========================
-    
-    Report Details:
-    ---------------
-    Scam Type: {data.get('scam_type', 'Not specified')}
-    Contact Method: {data.get('contact_method', 'Not specified')}
-    Date of Incident: {data.get('incident_date', 'Not specified')}
-    
-    Description:
-    {data.get('description', 'No description provided')}
-    
-    Scammer Information:
-    {data.get('scammer_contact', 'No contact information provided')}
-    
-    Financial Loss:
-    Lost Money: {data.get('lost_money', 'No')}
-    Amount: {data.get('amount', 'N/A')}
-    
-    Reporter Contact:
-    {data.get('reporter_email', 'Anonymous')}
-    
-    Submitted: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-    
-    ========================
-    This report was submitted through ScamGuard Online Scam Awareness System.
-    """
-    
-    save_report_to_file(data, report_body)
-    
-    return jsonify({
-        'success': True,
-        'message': 'Your report has been recorded and will help others recognize and avoid this type of scam.'
-    })
+try:
+    from services.content_validator import ContentValidator
+    ext._content_validator = ContentValidator()
+except Exception as _cv_err:
+    ext._content_validator = None
+    print(f"[!] ContentValidator init failed: {_cv_err}")
 
-def save_report_to_file(data, email_body):
-    """Save report to a local file as backup"""
-    try:
-        # Create reports directory if it doesn't exist
-        if not os.path.exists('reports'):
-            os.makedirs('reports')
-        
-        # Generate filename with timestamp
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"reports/scam_report_{timestamp}.txt"
-        
-        # Write report to file
-        with open(filename, 'w', encoding='utf-8') as f:
-            f.write(email_body)
-            f.write("\n\n--- RAW DATA ---\n")
-            f.write(str(data))
-        
-        return True
-    except Exception as e:
-        print(f"Error saving report: {e}")
-        return False
+try:
+    from services.audit_logger import AuditLogger
+    ext._audit_logger = AuditLogger(supabase_client, changed_by='admin')
+except Exception as _al_err:
+    ext._audit_logger = None
+    print(f"[!] AuditLogger init failed: {_al_err}")
 
+ext.supabase_client = supabase_client
+
+try:
+    from services.auth import (
+        login_user as _auth_login_user,
+        get_current_user as _auth_get_current_user,
+        generate_csrf_token as _auth_generate_csrf_token,
+        validate_csrf_token as _auth_validate_csrf_token,
+        log_auth_event as _auth_log_auth_event,
+        require_auth,
+        require_role,
+        _clear_session as _auth_clear_session,
+    )
+    ext._AUTH_AVAILABLE = True
+    ext.require_auth = require_auth
+    ext.require_role = require_role
+    ext._auth_login_user = _auth_login_user
+    ext._auth_get_current_user = _auth_get_current_user
+    ext._auth_generate_csrf_token = _auth_generate_csrf_token
+    ext._auth_validate_csrf_token = _auth_validate_csrf_token
+    ext._auth_log_auth_event = _auth_log_auth_event
+    ext._auth_clear_session = _auth_clear_session
+    print("[+] Auth module loaded")
+except Exception as _auth_err:
+    ext._AUTH_AVAILABLE = False
+    print(f"[!] Auth module init failed: {_auth_err}")
+
+# ---------------------------------------------------------------------------
+# Register blueprints
+# ---------------------------------------------------------------------------
+from routes.public import public
+from routes.api import api
+from routes.auth_routes import auth
+from routes.admin_routes import admin_content
+from routes.analytics_routes import analytics
+
+app.register_blueprint(public)
+app.register_blueprint(api)
+app.register_blueprint(auth)
+app.register_blueprint(admin_content)
+app.register_blueprint(analytics)
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    app.run(host='0.0.0.0', port=port, debug=debug)

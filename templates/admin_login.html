@@ -1,0 +1,225 @@
+<!-- <!DOCTYPE html> -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — ScamGuard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #080d1a;
+    font-family: 'DM Sans', sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Ambient background */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 50%, rgba(6,214,160,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 50%, rgba(99,102,241,0.05) 0%, transparent 60%),
+      linear-gradient(rgba(6,214,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(6,214,160,0.03) 1px, transparent 1px);
+    background-size: auto, auto, 48px 48px, 48px 48px;
+  }
+
+  /* Card */
+  .login-card {
+    position: relative; z-index: 1;
+    background: #0e1628;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+    animation: card-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) both;
+  }
+
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Logo area */
+  .login-logo { text-align: center; margin-bottom: 32px; }
+  .logo-icon-wrap {
+    width: 64px; height: 64px;
+    background: rgba(6,214,160,0.1);
+    border: 1px solid rgba(6,214,160,0.25);
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; color: #06d6a0;
+    margin: 0 auto 16px;
+  }
+  .login-logo h2 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800; font-size: 1.4rem;
+    letter-spacing: -0.03em; color: #fff;
+    margin-bottom: 4px;
+  }
+  .login-logo h2 span { color: #06d6a0; }
+  .login-logo p {
+    font-size: 0.8rem; color: #7a8aaa;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .admin-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(251,79,79,0.1); border: 1px solid rgba(251,79,79,0.2);
+    color: #fb4f4f; font-size: 0.72rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 100px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+
+  /* Error */
+  #error-msg {
+    background: rgba(251,79,79,0.08) !important;
+    border: 1px solid rgba(251,79,79,0.2) !important;
+    border-radius: 10px !important;
+    color: #f09595 !important;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Form fields */
+  .field-wrap { margin-bottom: 18px; }
+  .field-label {
+    display: block; font-size: 0.78rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    color: #7a8aaa; margin-bottom: 8px;
+  }
+  .input-group-text {
+    background: #141e35 !important;
+    border: 1px solid rgba(255,255,255,0.09) !important;
+    border-right: none !important;
+    color: #7a8aaa !important;
+    border-radius: 10px 0 0 10px !important;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+  .form-control {
+    background: #141e35 !important;
+    border: 1px solid rgba(255,255,255,0.09) !important;
+    border-left: none !important;
+    border-radius: 0 10px 10px 0 !important;
+    color: #e8edf8 !important;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 12px 14px;
+    height: auto;
+  }
+  .form-control:focus {
+    box-shadow: none !important;
+    border-color: rgba(6,214,160,0.3) !important;
+    background: #141e35 !important;
+  }
+  .form-control::placeholder { color: rgba(122,138,170,0.4) !important; }
+  /* Fix group focus ring */
+  .input-group:focus-within .input-group-text {
+    border-color: rgba(6,214,160,0.3) !important;
+  }
+
+  /* Submit button */
+  .btn-login {
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    width: 100%; margin-top: 8px;
+    background: #06d6a0;
+    color: #061210;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700; font-size: 0.95rem;
+    padding: 13px;
+    border: none; border-radius: 10px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-login:hover:not(:disabled) {
+    background: #04a87e;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(6,214,160,0.25);
+  }
+  .btn-login:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  /* Back link */
+  .back-link {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 22px; font-size: 0.8rem; color: #7a8aaa;
+    text-decoration: none; transition: color 0.2s;
+  }
+  .back-link:hover { color: #06d6a0; }
+
+  /* Divider */
+  .login-divider {
+    height: 1px; background: rgba(255,255,255,0.07);
+    margin: 24px 0;
+  }
+  </style>
+</head>
+<body>
+  <div class="bg-layer"></div>
+
+  <div class="login-card">
+
+    <!-- Logo -->
+    <div class="login-logo">
+      <div class="logo-icon-wrap">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <h2>Scam<span>Guard</span></h2>
+      <div class="mt-2">
+        <span class="admin-badge"><i class="fas fa-lock"></i> Admin Portal</span>
+      </div>
+    </div>
+
+    <!-- Error (hidden by default) -->
+    <div class="alert d-none" id="error-msg" role="alert">
+      <i class="fas fa-exclamation-circle" style="flex-shrink:0;"></i>
+      <span id="error-text">Invalid credentials</span>
+    </div>
+
+    <!-- Form -->
+    <form id="login-form">
+      <div class="field-wrap">
+        <label class="field-label">Username</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-user"></i></span>
+          <input type="text" class="form-control" id="username"
+            placeholder="Enter your username" autocomplete="username" required>
+        </div>
+      </div>
+
+      <div class="field-wrap">
+        <label class="field-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-lock"></i></span>
+          <input type="password" class="form-control" id="password"
+            placeholder="Enter your password" autocomplete="current-password" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="btn">
+        <i class="fas fa-sign-in-alt"></i> Sign In
+      </button>
+    </form>
+
+    <div class="login-divider"></div>
+
+    <a href="/" class="back-link">
+      <i class="fas fa-arrow-left fa-xs"></i> Back to ScamGuard
+    </a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/admin_login.js') }}"></script>
+</body>
+</html>

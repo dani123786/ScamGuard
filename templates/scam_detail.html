@@ -1,293 +1,437 @@
 {% extends "base.html" %}
 
-{% block title %}{{ scam.title }} - Scam Awareness{% endblock %}
+{% block title %}{{ scam.title }} — ScamGuard Awareness{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --teal:   #06d6a0;
+  --teal-dim: rgba(6,214,160,0.12);
+  --rose:   #fb4f4f;
+  --amber:  #f59e0b;
+  --purple: #a78bfa;
+  --navy:   #080d1a;
+  --navy-2: #0e1628;
+  --navy-3: #141e35;
+  --border: rgba(255,255,255,0.07);
+  --muted:  #7a8aaa;
+  --font-h: 'Outfit', sans-serif;
+  --font-b: 'DM Sans', sans-serif;
+}
+
+.sd-header {
+  background: linear-gradient(135deg, #0a1628 0%, #111d38 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 40px 0 32px;
+}
+.sd-breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.78rem; color: var(--muted);
+  margin-bottom: 18px; flex-wrap: wrap;
+}
+.sd-breadcrumb a { color: var(--muted); text-decoration: none; transition: color 0.18s; }
+.sd-breadcrumb a:hover { color: var(--teal); }
+.sd-breadcrumb .sep { opacity: 0.4; font-size: 0.7rem; }
+.sd-breadcrumb .current { color: var(--teal); }
+.sd-header-title {
+  font-family: var(--font-h);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 800; color: #fff;
+  letter-spacing: -0.03em; margin: 0; line-height: 1.2;
+}
+
+.sd-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 28px; padding: 40px 0 64px;
+}
+@media (max-width: 900px) { .sd-layout { grid-template-columns: 1fr; } }
+
+.sd-card {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden; margin-bottom: 24px;
+}
+.sd-card-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 24px; border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.sd-card-header-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.sd-card-header-icon.teal   { background: rgba(6,214,160,0.12);  color: var(--teal); }
+.sd-card-header-icon.rose   { background: rgba(251,79,79,0.1);   color: var(--rose); }
+.sd-card-header-icon.green  { background: rgba(6,214,160,0.1);   color: #4ade80; }
+.sd-card-header-icon.purple { background: rgba(167,139,250,0.1); color: var(--purple); }
+.sd-card-header h3 {
+  font-family: var(--font-h); font-size: 0.95rem;
+  font-weight: 700; color: #fff; margin: 0;
+}
+.sd-card-body { padding: 24px; }
+
+.sd-video-wrap {
+  border-radius: 10px; overflow: hidden;
+  background: #000; position: relative;
+}
+.sd-video-wrap video { width: 100%; display: block; border-radius: 10px; }
+.sd-video-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.8rem; color: var(--muted); margin-top: 10px;
+}
+.sd-video-unavailable {
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(167,139,250,0.06);
+  border: 1px solid rgba(167,139,250,0.15);
+  border-radius: 12px; padding: 20px 24px; color: var(--purple);
+}
+.sd-video-unavailable .vna-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(167,139,250,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.sd-video-unavailable p { margin: 0; font-size: 0.875rem; color: var(--muted); }
+.sd-video-unavailable strong { color: var(--purple); font-size: 0.9rem; display: block; margin-bottom: 3px; }
+
+.sd-description { font-size: 0.95rem; color: #c0c8d8; line-height: 1.75; margin: 0; }
+
+.sd-warning-list, .sd-prevention-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.sd-warning-list li {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--navy-3);
+  border: 1px solid rgba(251,79,79,0.1);
+  border-left: 3px solid var(--rose);
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 0.875rem; color: #c0c8d8; line-height: 1.5;
+}
+.sd-warning-list li i { color: var(--rose); margin-top: 2px; flex-shrink: 0; font-size: 0.75rem; }
+.sd-prevention-list li {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--navy-3);
+  border: 1px solid rgba(6,214,160,0.1);
+  border-left: 3px solid var(--teal);
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 0.875rem; color: #c0c8d8; line-height: 1.5;
+}
+.sd-prevention-list li i { color: var(--teal); margin-top: 2px; flex-shrink: 0; font-size: 0.75rem; }
+
+/* Practice quiz */
+.pq-start-wrap { display: flex; flex-direction: column; align-items: center; padding: 36px 24px; text-align: center; }
+.pq-start-icon {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: var(--purple); margin-bottom: 16px;
+}
+.pq-start-wrap h4 { font-family: var(--font-h); font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.pq-start-wrap p  { font-size: 0.85rem; color: var(--muted); margin-bottom: 20px; }
+.btn-pq-start {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--purple); color: #fff;
+  font-family: var(--font-b); font-weight: 600; font-size: 0.875rem;
+  padding: 12px 28px; border: none; border-radius: 10px;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-pq-start:hover { background: #8b70fa; transform: translateY(-1px); }
+
+.pq-progress-wrap { background: rgba(255,255,255,0.06); border-radius: 100px; height: 5px; overflow: hidden; margin-bottom: 20px; }
+#practice-progress { height: 100%; background: linear-gradient(90deg, var(--purple), #8b70fa); border-radius: 100px; transition: width 0.4s ease; }
+
+.pq-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+.btn-pq-prev {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: transparent; color: var(--muted);
+  font-family: var(--font-b); font-weight: 500; font-size: 0.82rem;
+  padding: 9px 16px; border: 1px solid var(--border); border-radius: 9px; cursor: pointer; transition: all 0.2s;
+}
+.btn-pq-prev:hover { color: #e8edf8; border-color: rgba(255,255,255,0.15); }
+.btn-pq-next {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--teal); color: #061210;
+  font-family: var(--font-b); font-weight: 600; font-size: 0.82rem;
+  padding: 9px 18px; border: none; border-radius: 9px; cursor: pointer; transition: all 0.2s;
+}
+.btn-pq-next:hover { background: #04a87e; }
+.btn-pq-submit {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--purple); color: #fff;
+  font-family: var(--font-b); font-weight: 600; font-size: 0.82rem;
+  padding: 9px 18px; border: none; border-radius: 9px; cursor: pointer; transition: all 0.2s;
+}
+.btn-pq-submit:hover { background: #8b70fa; }
+
+.pq-results-hero { text-align: center; padding: 32px 24px 24px; border-bottom: 1px solid var(--border); }
+.pq-results-detail { padding: 20px 24px; }
+.pq-results-footer { display: flex; gap: 10px; flex-wrap: wrap; padding: 18px 24px 24px; border-top: 1px solid var(--border); }
+.btn-pq-retake {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--purple); color: #fff;
+  font-family: var(--font-b); font-weight: 600; font-size: 0.85rem;
+  padding: 10px 22px; border: none; border-radius: 9px; cursor: pointer; transition: all 0.2s;
+}
+.btn-pq-retake:hover { background: #8b70fa; }
+.btn-pq-back-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  color: var(--muted); font-family: var(--font-b); font-size: 0.85rem; font-weight: 500;
+  padding: 10px 18px; border: 1px solid var(--border); border-radius: 9px;
+  text-decoration: none; transition: all 0.2s;
+}
+.btn-pq-back-link:hover { color: #e8edf8; border-color: rgba(255,255,255,0.15); }
+
+/* Sidebar widgets */
+.sd-widget { background: var(--navy-2); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+.sd-widget h5 { font-family: var(--font-h); font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.sd-widget p  { font-size: 0.82rem; color: var(--muted); margin-bottom: 14px; }
+.sd-widget-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 12px; }
+.sd-widget-icon.teal  { background: rgba(6,214,160,0.1);  color: var(--teal); }
+.sd-widget-icon.amber { background: rgba(245,158,11,0.1); color: var(--amber); }
+.sd-widget-icon.rose  { background: rgba(251,79,79,0.1);  color: var(--rose); }
+.btn-widget {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 10px 16px; border-radius: 9px;
+  font-family: var(--font-b); font-weight: 600; font-size: 0.82rem;
+  text-decoration: none; border: 1px solid; cursor: pointer; transition: all 0.2s;
+}
+.btn-widget.teal  { background: rgba(6,214,160,0.1);  color: var(--teal);  border-color: rgba(6,214,160,0.2); }
+.btn-widget.teal:hover  { background: rgba(6,214,160,0.2); }
+.btn-widget.amber { background: rgba(245,158,11,0.1); color: var(--amber); border-color: rgba(245,158,11,0.2); }
+.btn-widget.amber:hover { background: rgba(245,158,11,0.18); }
+.btn-widget.rose  { background: rgba(251,79,79,0.1);  color: var(--rose);  border-color: rgba(251,79,79,0.2); }
+.btn-widget.rose:hover  { background: rgba(251,79,79,0.18); }
+
+.btn-sd-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--muted);
+  font-family: var(--font-b); font-weight: 500; font-size: 0.875rem;
+  padding: 10px 18px; border: 1px solid var(--border); border-radius: 10px;
+  text-decoration: none; transition: all 0.2s; margin-top: 8px;
+}
+.btn-sd-back:hover { color: #e8edf8; border-color: rgba(255,255,255,0.15); }
+
+/* Practice quiz JS-generated overrides */
+#practice-question-container .question-card {
+  background: var(--navy-3) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  padding: 22px !important;
+  box-shadow: none !important;
+  color: #fff !important;
+}
+#practice-question-container .question-card h5,
+#practice-question-container .question-card .question-text {
+  color: #fff !important; font-family: 'Outfit', sans-serif !important; font-weight: 600 !important;
+}
+#practice-question-container .option-item label {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  color: #c0c8d8 !important; border-radius: 9px !important;
+}
+#practice-question-container .option-item label:hover {
+  border-color: rgba(167,139,250,0.3) !important; color: #e8edf8 !important;
+}
+#practice-question-container .option-item.selected label {
+  border-color: rgba(167,139,250,0.4) !important;
+  background: rgba(167,139,250,0.08) !important;
+  color: #a78bfa !important;
+}
+#practice-question-container .question-num { color: var(--purple) !important; }
+#practice-score-display { color: #fff !important; }
+#practice-results-details .result-item {
+  background: var(--navy-3) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important; box-shadow: none !important;
+}
+#practice-results-details .result-item.correct  { border-left: 3px solid #06d6a0 !important; }
+#practice-results-details .result-item.incorrect { border-left: 3px solid #fb4f4f !important; }
+#practice-results-details .result-item h5 { color: #fff !important; }
+#practice-results-details .result-item p  { color: #c0c8d8 !important; }
+#practice-results-details .result-item strong { color: #e8edf8 !important; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">Home</a></li>
-                <li class="breadcrumb-item"><a href="/awareness">Awareness</a></li>
-                <li class="breadcrumb-item active">{{ scam.title }}</li>
-            </ol>
-        </nav>
-        <h1 class="display-5 fw-bold">{{ scam.title }}</h1>
-    </div>
+<div class="sd-header">
+  <div class="container">
+    <nav class="sd-breadcrumb" aria-label="breadcrumb">
+      <a href="/"><i class="fas fa-home" style="font-size:0.7rem;"></i> Home</a>
+      <span class="sep"><i class="fas fa-chevron-right"></i></span>
+      <a href="/awareness">Awareness</a>
+      <span class="sep"><i class="fas fa-chevron-right"></i></span>
+      <span class="current">{{ scam.title }}</span>
+    </nav>
+    <h1 class="sd-header-title">{{ scam.title }}</h1>
+  </div>
 </div>
 
-<div class="container my-5">
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Video Section -->
-            <div class="detail-card mb-4">
-                <h3><i class="fas fa-video text-primary"></i> Educational Video</h3>
-                {% if video_available %}
-                <div class="video-container">
-                    <video controls class="w-100" poster="/static/images/video-placeholder.jpg">
-                        <source src="/static/videos/{{ scam_type }}.mp4" type="video/mp4">
-                        <source src="/static/videos/{{ scam_type }}.webm" type="video/webm">
-                        Your browser does not support the video tag.
-                    </video>
-                    <p class="text-muted small mt-2">
-                        <i class="fas fa-info-circle"></i> Watch this video to learn more about {{ scam.title }}
-                    </p>
-                </div>
-                {% else %}
-                <div class="alert alert-info">
-                    <i class="fas fa-clock"></i> <strong>Video Coming Soon!</strong>
-                    <p class="mb-0 mt-2">We're currently preparing an educational video about {{ scam.title }}. Check back soon!</p>
-                </div>
-                {% endif %}
-            </div>
+<div class="container">
+  <div class="sd-layout">
 
-            <div class="detail-card mb-4">
-                <h3><i class="fas fa-info-circle text-primary"></i> What is it?</h3>
-                <p class="lead">{{ scam.description }}</p>
-            </div>
+    <!-- LEFT -->
+    <div>
 
-            <div class="detail-card mb-4">
-                <h3><i class="fas fa-exclamation-triangle text-danger"></i> Warning Signs</h3>
-                <p>Be alert if you notice any of these red flags:</p>
-                <ul class="warning-list">
-                    {% for sign in scam.warning_signs %}
-                    <li><i class="fas fa-chevron-right text-danger"></i> {{ sign }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <div class="detail-card mb-4">
-                <h3><i class="fas fa-shield-alt text-success"></i> How to Protect Yourself</h3>
-                <p>Follow these prevention tips:</p>
-                <ul class="prevention-list">
-                    {% for tip in scam.prevention %}
-                    <li><i class="fas fa-check text-success"></i> {{ tip }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <!-- Practice Quiz Section -->
-            <div class="detail-card mb-4">
-                <h3><i class="fas fa-brain text-primary"></i> Practice Quiz</h3>
-                <p>Test your knowledge about {{ scam.title }} with these 10 questions:</p>
-                
-                <div id="practice-quiz-container">
-                    <div id="practice-quiz-intro">
-                        <button id="start-practice-quiz" class="btn btn-primary btn-lg">
-                            <i class="fas fa-play"></i> Start Practice Quiz
-                        </button>
-                    </div>
-                    
-                    <div id="practice-quiz-questions" style="display: none;">
-                        <div class="progress mb-3">
-                            <div id="practice-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
-                        </div>
-                        
-                        <div id="practice-question-container"></div>
-                        
-                        <div class="d-flex justify-content-between mt-3">
-                            <button id="practice-prev-btn" class="btn btn-outline-secondary" style="display: none;">
-                                <i class="fas fa-arrow-left"></i> Previous
-                            </button>
-                            <button id="practice-next-btn" class="btn btn-primary" style="display: none;">
-                                Next <i class="fas fa-arrow-right"></i>
-                            </button>
-                            <button id="practice-submit-btn" class="btn btn-success" style="display: none;">
-                                <i class="fas fa-check"></i> Submit
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div id="practice-quiz-results" style="display: none;">
-                        <div id="practice-score-display" class="text-center mb-3"></div>
-                        <div id="practice-results-details" class="mt-4"></div>
-                        <button id="practice-retake-btn" class="btn btn-primary">
-                            <i class="fas fa-redo"></i> Retake Quiz
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <!-- Video -->
+      <div class="sd-card">
+        <div class="sd-card-header">
+          <div class="sd-card-header-icon teal"><i class="fas fa-play"></i></div>
+          <h3>Educational Video</h3>
         </div>
-
-        <div class="col-lg-4">
-            <div class="sidebar-card mb-4">
-                <h5><i class="fas fa-question-circle"></i> Test Your Knowledge</h5>
-                <p>Think you can spot this scam? Take our quiz to find out!</p>
-                <a href="/quiz" class="btn btn-success w-100">Take Quiz</a>
+        <div class="sd-card-body">
+          {% if video_available %}
+          <div class="sd-video-wrap">
+            <video controls>
+              <source src="https://zxtyyylzrazcipyaxssf.supabase.co/storage/v1/object/public/Videos/{{ scam_type }}.mp4" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          <div class="sd-video-label">
+            <i class="fas fa-info-circle"></i>
+            Watch this video to learn more about {{ scam.title }}
+          </div>
+          {% else %}
+          <div class="sd-video-unavailable">
+            <div class="vna-icon"><i class="fas fa-clock"></i></div>
+            <div>
+              <strong>Video Coming Soon!</strong>
+              <p>Educational video for this scam type is being prepared.</p>
             </div>
-
-            <div class="sidebar-card mb-4">
-                <h5><i class="fas fa-search"></i> Check Suspicious Content</h5>
-                <p>Use our scam checker to analyze emails, URLs, or messages.</p>
-                <a href="/checker" class="btn btn-warning w-100">Scam Checker</a>
-            </div>
-
-            <div class="sidebar-card alert-card">
-                <h5><i class="fas fa-flag"></i> Report a Scam</h5>
-                <p>If you've encountered this scam, report it to help others.</p>
-                <a href="/report" class="btn btn-danger w-100">Report Now</a>
-            </div>
+          </div>
+          {% endif %}
         </div>
+      </div>
+
+      <!-- What is it -->
+      <div class="sd-card">
+        <div class="sd-card-header">
+          <div class="sd-card-header-icon teal"><i class="fas fa-info-circle"></i></div>
+          <h3>What Is This Scam?</h3>
+        </div>
+        <div class="sd-card-body">
+          <p class="sd-description">{{ scam.description }}</p>
+        </div>
+      </div>
+
+      <!-- Warning signs -->
+      <div class="sd-card">
+        <div class="sd-card-header">
+          <div class="sd-card-header-icon rose"><i class="fas fa-exclamation-triangle"></i></div>
+          <h3>Warning Signs</h3>
+        </div>
+        <div class="sd-card-body">
+          <ul class="sd-warning-list">
+            {% for sign in scam.warning_signs %}
+            <li><i class="fas fa-chevron-right"></i> {{ sign }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Prevention -->
+      <div class="sd-card">
+        <div class="sd-card-header">
+          <div class="sd-card-header-icon green"><i class="fas fa-shield-alt"></i></div>
+          <h3>How to Protect Yourself</h3>
+        </div>
+        <div class="sd-card-body">
+          <ul class="sd-prevention-list">
+            {% for tip in scam.prevention %}
+            <li><i class="fas fa-check"></i> {{ tip }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Practice Quiz -->
+      <div class="sd-card">
+        <div class="sd-card-header">
+          <div class="sd-card-header-icon purple"><i class="fas fa-brain"></i></div>
+          <h3>Practice Quiz — {{ scam.title }}</h3>
+        </div>
+        <div class="sd-card-body" style="padding:0;">
+          <div id="practice-quiz-container">
+            <div id="practice-quiz-intro">
+              <div class="pq-start-wrap">
+                <div class="pq-start-icon"><i class="fas fa-brain"></i></div>
+                <h4>Test Your Knowledge</h4>
+                <p>10 questions about {{ scam.title }} — how well do you know this scam?</p>
+                <button id="start-practice-quiz" class="btn-pq-start">
+                  <i class="fas fa-play"></i> Start Practice Quiz
+                </button>
+              </div>
+            </div>
+            <div id="practice-quiz-questions" style="display:none; padding:24px;">
+              <div class="pq-progress-wrap">
+                <div id="practice-progress" role="progressbar" style="width:0%"></div>
+              </div>
+              <div id="practice-question-container"></div>
+              <div class="pq-nav">
+                <button id="practice-prev-btn" class="btn-pq-prev" style="display:none;">
+                  <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <div></div>
+                <button id="practice-next-btn" class="btn-pq-next" style="display:none;">
+                  Next <i class="fas fa-arrow-right"></i>
+                </button>
+                <button id="practice-submit-btn" class="btn-pq-submit" style="display:none;">
+                  <i class="fas fa-check"></i> Submit
+                </button>
+              </div>
+            </div>
+            <div id="practice-quiz-results" style="display:none;">
+              <div class="pq-results-hero">
+                <div id="practice-score-display"></div>
+              </div>
+              <div class="pq-results-detail">
+                <div id="practice-results-details"></div>
+              </div>
+              <div class="pq-results-footer">
+                <button id="practice-retake-btn" class="btn-pq-retake">
+                  <i class="fas fa-redo"></i> Retake Quiz
+                </button>
+                <a href="/awareness" class="btn-pq-back-link">
+                  <i class="fas fa-arrow-left"></i> All Scams
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <a href="/awareness" class="btn-sd-back">
+        <i class="fas fa-arrow-left"></i> Back to All Scams
+      </a>
+
     </div>
 
-    <div class="navigation-buttons mt-4">
-        <a href="/awareness" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left"></i> Back to All Scams
-        </a>
+    <!-- RIGHT SIDEBAR -->
+    <div>
+      <div class="sd-widget">
+        <div class="sd-widget-icon teal"><i class="fas fa-question-circle"></i></div>
+        <h5>Test Your Knowledge</h5>
+        <p>Think you can spot this scam? Take our full awareness quiz!</p>
+        <a href="/quiz" class="btn-widget teal"><i class="fas fa-brain"></i> Take Quiz</a>
+      </div>
+      <div class="sd-widget">
+        <div class="sd-widget-icon amber"><i class="fas fa-robot"></i></div>
+        <h5>Check Suspicious Content</h5>
+        <p>Use our AI checker to analyse emails, URLs, or messages instantly.</p>
+        <a href="/checker" class="btn-widget amber"><i class="fas fa-search"></i> Scam Checker</a>
+      </div>
+      <div class="sd-widget">
+        <div class="sd-widget-icon rose"><i class="fas fa-flag"></i></div>
+        <h5>Report a Scam</h5>
+        <p>Encountered this scam? Report it to help protect others.</p>
+        <a href="/report" class="btn-widget rose"><i class="fas fa-flag"></i> Report Now</a>
+      </div>
     </div>
+
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-const practiceQuestions = {{ practice_questions | tojson }};
-let currentPracticeQuestion = 0;
-let practiceAnswers = [];
-
-if (practiceQuestions && practiceQuestions.length > 0) {
-    document.getElementById('start-practice-quiz').addEventListener('click', startPracticeQuiz);
-    document.getElementById('practice-next-btn').addEventListener('click', nextPracticeQuestion);
-    document.getElementById('practice-prev-btn').addEventListener('click', prevPracticeQuestion);
-    document.getElementById('practice-submit-btn').addEventListener('click', submitPracticeQuiz);
-    document.getElementById('practice-retake-btn').addEventListener('click', () => {
-        document.getElementById('practice-quiz-results').style.display = 'none';
-        document.getElementById('practice-quiz-intro').style.display = 'block';
-        currentPracticeQuestion = 0;
-        practiceAnswers = [];
-    });
-}
-
-function startPracticeQuiz() {
-    practiceAnswers = new Array(practiceQuestions.length).fill(null);
-    document.getElementById('practice-quiz-intro').style.display = 'none';
-    document.getElementById('practice-quiz-questions').style.display = 'block';
-    showPracticeQuestion(0);
-}
-
-function showPracticeQuestion(index) {
-    currentPracticeQuestion = index;
-    const question = practiceQuestions[index];
-    
-    const progress = ((index + 1) / practiceQuestions.length) * 100;
-    document.getElementById('practice-progress').style.width = progress + '%';
-    document.getElementById('practice-progress').textContent = `Question ${index + 1} of ${practiceQuestions.length}`;
-    
-    const container = document.getElementById('practice-question-container');
-    container.innerHTML = `
-        <div class="question-card">
-            <h5 class="mb-3">Question ${index + 1}</h5>
-            <p class="mb-3">${question.question}</p>
-            <div class="options-container">
-                ${question.options.map((option, i) => `
-                    <label class="option-item ${practiceAnswers[index] === i ? 'selected' : ''}" for="pq${index}o${i}">
-                        <input class="form-check-input" type="radio" name="practice${index}" 
-                               id="pq${index}o${i}" value="${i}" 
-                               ${practiceAnswers[index] === i ? 'checked' : ''}>
-                        <span class="option-text">${option}</span>
-                    </label>
-                `).join('')}
-            </div>
-        </div>
-    `;
-    
-    // Make entire option clickable
-    document.querySelectorAll('.option-item').forEach((label) => {
-        label.addEventListener('click', function(e) {
-            if (e.target.tagName !== 'INPUT') {
-                const input = this.querySelector('input');
-                input.checked = true;
-                input.dispatchEvent(new Event('change'));
-            }
-        });
-    });
-    
-    document.querySelectorAll(`input[name="practice${index}"]`).forEach(input => {
-        input.addEventListener('change', (e) => {
-            practiceAnswers[index] = parseInt(e.target.value);
-            document.querySelectorAll('.option-item').forEach(item => item.classList.remove('selected'));
-            e.target.closest('.option-item').classList.add('selected');
-            updatePracticeButtons();
-        });
-    });
-    
-    updatePracticeButtons();
-}
-
-function updatePracticeButtons() {
-    document.getElementById('practice-prev-btn').style.display = currentPracticeQuestion > 0 ? 'block' : 'none';
-    document.getElementById('practice-next-btn').style.display = 
-        currentPracticeQuestion < practiceQuestions.length - 1 && practiceAnswers[currentPracticeQuestion] !== null ? 'block' : 'none';
-    document.getElementById('practice-submit-btn').style.display = 
-        currentPracticeQuestion === practiceQuestions.length - 1 && practiceAnswers.every(a => a !== null) ? 'block' : 'none';
-}
-
-function nextPracticeQuestion() {
-    if (currentPracticeQuestion < practiceQuestions.length - 1) {
-        showPracticeQuestion(currentPracticeQuestion + 1);
-    }
-}
-
-function prevPracticeQuestion() {
-    if (currentPracticeQuestion > 0) {
-        showPracticeQuestion(currentPracticeQuestion - 1);
-    }
-}
-
-function submitPracticeQuiz() {
-    const score = practiceAnswers.reduce((acc, answer, i) => {
-        return acc + (answer === practiceQuestions[i].correct ? 1 : 0);
-    }, 0);
-    
-    const percentage = (score / practiceQuestions.length) * 100;
-    
-    let scoreClass = 'text-success';
-    let message = 'Excellent! You understand this scam well!';
-    let emoji = '🎉';
-    
-    if (percentage < 50) {
-        scoreClass = 'text-danger';
-        message = 'Review the information above and try again!';
-        emoji = '📚';
-    } else if (percentage < 70) {
-        scoreClass = 'text-warning';
-        message = 'Good effort! A bit more review will help.';
-        emoji = '💪';
-    } else if (percentage < 90) {
-        scoreClass = 'text-info';
-        message = 'Great job! You\'re well-prepared!';
-        emoji = '⭐';
-    }
-    
-    document.getElementById('practice-quiz-questions').style.display = 'none';
-    document.getElementById('practice-quiz-results').style.display = 'block';
-    
-    document.getElementById('practice-score-display').innerHTML = `
-        <h3 class="${scoreClass}">${emoji} Score: ${score}/${practiceQuestions.length} (${percentage.toFixed(0)}%)</h3>
-        <p class="lead">${message}</p>
-    `;
-    
-    // Show detailed results with explanations
-    let detailsHTML = '<div class="text-start">';
-    practiceAnswers.forEach((answer, i) => {
-        const question = practiceQuestions[i];
-        const isCorrect = answer === question.correct;
-        const icon = isCorrect ? 
-            '<i class="fas fa-check-circle text-success"></i>' : 
-            '<i class="fas fa-times-circle text-danger"></i>';
-        
-        detailsHTML += `
-            <div class="result-item ${isCorrect ? 'correct' : 'incorrect'}">
-                <h5>${icon} Question ${i + 1}</h5>
-                <p class="mb-1"><strong>${question.question}</strong></p>
-                <p class="mb-1">Your answer: ${question.options[answer]}</p>
-                ${!isCorrect ? `<p class="mb-1 text-success">Correct answer: ${question.options[question.correct]}</p>` : ''}
-                <p class="small text-muted"><i class="fas fa-info-circle"></i> ${question.explanation || 'No explanation available.'}</p>
-            </div>
-        `;
-    });
-    detailsHTML += '</div>';
-    
-    document.getElementById('practice-results-details').innerHTML = detailsHTML;
-}
-</script>
+<script id="practice-questions-data" type="application/json">{{ practice_questions | tojson }}</script>
+<script src="{{ url_for('static', filename='js/practice_quiz.js') }}"></script>
 {% endblock %}

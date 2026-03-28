@@ -1,118 +1,239 @@
 {% extends "base.html" %}
+{% block title %}Resources & Help — ScamGuard{% endblock %}
 
-{% block title %}Resources - Scam Reporting & Help{% endblock %}
+{% block extra_css %}
+<style>
+:root {
+  --teal:#06d6a0;--rose:#fb4f4f;--amber:#f59e0b;--purple:#a78bfa;
+  --navy:#080d1a;--navy-2:#0e1628;--navy-3:#141e35;
+  --border:rgba(255,255,255,0.07);--muted:#7a8aaa;--font-h:'Outfit',sans-serif;
+}
+.rs-header{background:linear-gradient(135deg,#0a1628 0%,#111d38 100%);border-bottom:1px solid var(--border);padding:48px 0 36px}
+.rs-header h1{font-family:var(--font-h);font-weight:800;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.03em;color:#fff;margin-bottom:6px}
+.rs-header h1 span{color:var(--teal)}
+.rs-header .lead{color:var(--muted);font-size:.95rem;font-weight:300;margin:0}
+.rs-wrap{padding:48px 0 64px}
+
+/* Section label */
+.rs-section-label{display:flex;align-items:center;gap:10px;font-family:var(--font-h);
+  font-size:1.05rem;font-weight:700;color:#fff;margin-bottom:14px;padding-bottom:12px;
+  border-bottom:1px solid var(--border)}
+.rs-section-label i{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:.9rem;flex-shrink:0}
+.i-red   {background:rgba(251,79,79,.12);color:var(--rose)}
+.i-green {background:rgba(6,214,160,.12);color:var(--teal)}
+.i-purple{background:rgba(167,139,250,.12);color:var(--purple)}
+
+/* Resource card */
+.rs-card{background:var(--navy-2);border:1px solid var(--border);border-radius:14px;
+  padding:20px 22px;margin-bottom:12px;display:flex;align-items:flex-start;
+  justify-content:space-between;gap:16px;transition:border-color .2s}
+.rs-card:hover{border-color:rgba(255,255,255,.12)}
+.rs-card-text h5{font-family:var(--font-h);font-size:.95rem;font-weight:700;color:#fff;margin-bottom:4px}
+.rs-card-text p{font-size:.82rem;color:var(--muted);margin-bottom:6px;line-height:1.5}
+.rs-card-text .rs-email{font-size:.8rem;color:var(--teal);font-family:'DM Mono',monospace}
+.btn-rs-visit{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;
+  background:rgba(6,214,160,.1);border:1px solid rgba(6,214,160,.2);color:var(--teal);
+  font-size:.78rem;font-weight:600;padding:7px 14px;border-radius:8px;
+  text-decoration:none;white-space:nowrap;transition:all .2s;align-self:flex-start}
+.btn-rs-visit:hover{background:rgba(6,214,160,.18);color:var(--teal)}
+
+/* Sidebar cards */
+.rs-side-card{background:var(--navy-2);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:16px}
+.rs-side-card h5{font-family:var(--font-h);font-size:.95rem;font-weight:700;color:#fff;
+  margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.rs-side-card h5 i{font-size:.9rem}
+
+.steps-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;counter-reset:steps}
+.steps-list li{display:flex;align-items:flex-start;gap:10px;font-size:.82rem;color:#c0c8d8;line-height:1.5;counter-increment:steps}
+.steps-list li::before{content:counter(steps);width:22px;height:22px;border-radius:6px;
+  background:rgba(6,214,160,.12);border:1px solid rgba(6,214,160,.2);color:var(--teal);
+  font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+.quick-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.quick-list li{display:flex;align-items:flex-start;gap:9px;font-size:.82rem;color:#c0c8d8;line-height:1.5}
+.quick-list li::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0;margin-top:5px}
+
+.rs-side-card.amber-tint{background:rgba(245,158,11,.05);border-color:rgba(245,158,11,.15)}
+.rs-side-card.amber-tint h5 i{color:var(--amber)}
+
+.btn-report-full{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  background:var(--rose);color:#fff;font-family:'DM Sans',sans-serif;font-weight:700;
+  font-size:.875rem;padding:12px;border-radius:10px;text-decoration:none;transition:all .2s}
+.btn-report-full:hover{background:#d43f3f;color:#fff;transform:translateY(-1px)}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .5s ease,transform .5s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="container">
-        <h1 class="display-5 fw-bold"><i class="fas fa-book"></i> Resources & Help</h1>
-        <p class="lead">Useful links and contact information for reporting scams</p>
-    </div>
+<div class="rs-header">
+  <div class="container">
+    <h1><i class="fas fa-book" style="color:var(--teal);margin-right:10px;font-size:1.4rem;"></i>Resources <span>&amp; Help</span></h1>
+    <p class="lead">Verified links and official contacts for reporting scams and getting support</p>
+  </div>
 </div>
 
-<div class="container my-5">
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="resource-section mb-4">
-                <h3><i class="fas fa-flag text-danger"></i> Report Scams</h3>
-                <p>If you've been targeted or fallen victim to a scam, report it to these authorities:</p>
-                
-                <div class="resource-card">
-                    <h5>Federal Trade Commission (FTC)</h5>
-                    <p>Report fraud, scams, and bad business practices</p>
-                    <a href="https://reportfraud.ftc.gov" target="_blank" class="btn btn-sm btn-outline-primary">
-                        Visit Website <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </div>
+<div class="rs-wrap">
+  <div class="container">
+    <div class="row g-4">
 
-                <div class="resource-card">
-                    <h5>Internet Crime Complaint Center (IC3)</h5>
-                    <p>FBI's central hub for reporting internet crime</p>
-                    <a href="https://www.ic3.gov" target="_blank" class="btn btn-sm btn-outline-primary">
-                        Visit Website <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </div>
+      <!-- Main content -->
+      <div class="col-lg-8">
 
-                <div class="resource-card">
-                    <h5>Anti-Phishing Working Group</h5>
-                    <p>Report phishing emails and websites</p>
-                    <p><strong>Email:</strong> reportphishing@apwg.org</p>
-                </div>
+        <!-- Report Scams -->
+        <div class="mb-5 reveal">
+          <div class="rs-section-label">
+            <span class="i-red rs-section-label i" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(251,79,79,.12);font-size:.9rem;">
+              <i class="fas fa-flag" style="color:var(--rose)"></i>
+            </span>
+            Report Scams to Authorities
+          </div>
+
+          <div class="rs-card">
+            <div class="rs-card-text">
+              <h5>Federal Trade Commission (FTC)</h5>
+              <p>Report fraud, scams, and bad business practices directly to the US government</p>
             </div>
+            <a href="https://reportfraud.ftc.gov" target="_blank" class="btn-rs-visit">
+              Visit <i class="fas fa-external-link-alt fa-xs"></i>
+            </a>
+          </div>
 
-            <div class="resource-section mb-4">
-                <h3><i class="fas fa-phone text-success"></i> Get Help</h3>
-                
-                <div class="resource-card">
-                    <h5>National Cyber Security Centre</h5>
-                    <p>Guidance on staying safe online</p>
-                    <a href="https://www.ncsc.gov.uk" target="_blank" class="btn btn-sm btn-outline-primary">
-                        Visit Website <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </div>
-
-                <div class="resource-card">
-                    <h5>Consumer Financial Protection Bureau</h5>
-                    <p>Help with financial scams and fraud</p>
-                    <a href="https://www.consumerfinance.gov" target="_blank" class="btn btn-sm btn-outline-primary">
-                        Visit Website <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </div>
+          <div class="rs-card">
+            <div class="rs-card-text">
+              <h5>Internet Crime Complaint Center (IC3)</h5>
+              <p>FBI's central hub for reporting internet crime and cybercrime complaints</p>
             </div>
+            <a href="https://www.ic3.gov" target="_blank" class="btn-rs-visit">
+              Visit <i class="fas fa-external-link-alt fa-xs"></i>
+            </a>
+          </div>
 
-            <div class="resource-section mb-4">
-                <h3><i class="fas fa-graduation-cap text-info"></i> Educational Resources</h3>
-                
-                <div class="resource-card">
-                    <h5>Stay Safe Online</h5>
-                    <p>National Cyber Security Alliance's resource for online safety</p>
-                    <a href="https://staysafeonline.org" target="_blank" class="btn btn-sm btn-outline-primary">
-                        Visit Website <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </div>
-
-                <div class="resource-card">
-                    <h5>OnGuard Online</h5>
-                    <p>Practical tips from the federal government</p>
-                    <a href="https://www.consumer.ftc.gov/features/scam-alerts" target="_blank" class="btn btn-sm btn-outline-primary">
-                        Visit Website <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </div>
+          <div class="rs-card">
+            <div class="rs-card-text">
+              <h5>Anti-Phishing Working Group</h5>
+              <p>Report phishing emails and malicious websites to the global security community</p>
+              <div class="rs-email"><i class="fas fa-envelope" style="font-size:10px;margin-right:5px;"></i>reportphishing@apwg.org</div>
             </div>
+          </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="sidebar-card mb-4">
-                <h5><i class="fas fa-exclamation-circle"></i> What to Do If Scammed</h5>
-                <ol class="small">
-                    <li>Stop all communication with the scammer</li>
-                    <li>Contact your bank or credit card company</li>
-                    <li>Change your passwords immediately</li>
-                    <li>Report to local law enforcement</li>
-                    <li>File a report with the FTC</li>
-                    <li>Monitor your accounts for suspicious activity</li>
-                    <li>Consider placing a fraud alert on your credit</li>
-                </ol>
-            </div>
+        <!-- Get Help -->
+        <div class="mb-5 reveal">
+          <div class="rs-section-label">
+            <span style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(6,214,160,.12);">
+              <i class="fas fa-phone" style="color:var(--teal);font-size:.9rem;"></i>
+            </span>
+            Get Help & Support
+          </div>
 
-            <div class="sidebar-card mb-4 bg-warning">
-                <h5><i class="fas fa-shield-alt"></i> Quick Tips</h5>
-                <ul class="small mb-0">
-                    <li>Never share personal information with unknown contacts</li>
-                    <li>Verify requests through official channels</li>
-                    <li>Use strong, unique passwords</li>
-                    <li>Enable two-factor authentication</li>
-                    <li>Keep software updated</li>
-                    <li>Trust your instincts</li>
-                </ul>
+          <div class="rs-card">
+            <div class="rs-card-text">
+              <h5>National Cyber Security Centre</h5>
+              <p>UK government guidance on protecting yourself and your organisation online</p>
             </div>
+            <a href="https://www.ncsc.gov.uk" target="_blank" class="btn-rs-visit">
+              Visit <i class="fas fa-external-link-alt fa-xs"></i>
+            </a>
+          </div>
 
-            <div class="sidebar-card">
-                <h5><i class="fas fa-flag"></i> Report to Us</h5>
-                <p class="small">Help others by sharing your experience</p>
-                <a href="/report" class="btn btn-danger w-100">Submit Report</a>
+          <div class="rs-card">
+            <div class="rs-card-text">
+              <h5>Consumer Financial Protection Bureau</h5>
+              <p>US federal agency providing help with financial scams, fraud, and consumer complaints</p>
             </div>
+            <a href="https://www.consumerfinance.gov" target="_blank" class="btn-rs-visit">
+              Visit <i class="fas fa-external-link-alt fa-xs"></i>
+            </a>
+          </div>
         </div>
+
+        <!-- Educational -->
+        <div class="reveal">
+          <div class="rs-section-label">
+            <span style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(167,139,250,.12);">
+              <i class="fas fa-graduation-cap" style="color:var(--purple);font-size:.9rem;"></i>
+            </span>
+            Educational Resources
+          </div>
+
+          <div class="rs-card">
+            <div class="rs-card-text">
+              <h5>Stay Safe Online</h5>
+              <p>National Cyber Security Alliance's comprehensive resource hub for online safety</p>
+            </div>
+            <a href="https://staysafeonline.org" target="_blank" class="btn-rs-visit">
+              Visit <i class="fas fa-external-link-alt fa-xs"></i>
+            </a>
+          </div>
+
+          <div class="rs-card">
+            <div class="rs-card-text">
+              <h5>FTC Scam Alerts</h5>
+              <p>Practical tips and up-to-date scam alerts from the US Federal Trade Commission</p>
+            </div>
+            <a href="https://www.consumer.ftc.gov/features/scam-alerts" target="_blank" class="btn-rs-visit">
+              Visit <i class="fas fa-external-link-alt fa-xs"></i>
+            </a>
+          </div>
+        </div>
+
+      </div><!-- /col-lg-8 -->
+
+      <!-- Sidebar -->
+      <div class="col-lg-4 reveal" style="transition-delay:.1s">
+
+        <!-- Steps if scammed -->
+        <div class="rs-side-card">
+          <h5><i class="fas fa-exclamation-circle" style="color:var(--rose);"></i> If you've been scammed</h5>
+          <ol class="steps-list">
+            <li>Stop all communication with the scammer immediately</li>
+            <li>Contact your bank or credit card company</li>
+            <li>Change all passwords for affected accounts</li>
+            <li>Report to your local law enforcement</li>
+            <li>File a report with the FTC at reportfraud.ftc.gov</li>
+            <li>Monitor your accounts for suspicious activity</li>
+            <li>Consider placing a fraud alert on your credit report</li>
+          </ol>
+        </div>
+
+        <!-- Quick tips -->
+        <div class="rs-side-card amber-tint">
+          <h5><i class="fas fa-shield-alt"></i> Quick protection tips</h5>
+          <ul class="quick-list">
+            <li>Never share personal info with unknown contacts</li>
+            <li>Verify all requests through official channels</li>
+            <li>Use strong, unique passwords everywhere</li>
+            <li>Enable two-factor authentication</li>
+            <li>Keep all software and apps updated</li>
+            <li>Trust your instincts — if it feels wrong, stop</li>
+          </ul>
+        </div>
+
+        <!-- Report CTA -->
+        <div class="rs-side-card">
+          <h5><i class="fas fa-flag" style="color:var(--rose);"></i> Report to ScamGuard</h5>
+          <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.6;">
+            Help protect others in the community by sharing your experience.
+          </p>
+          <a href="/report" class="btn-report-full">
+            <i class="fas fa-paper-plane"></i> Submit a Report
+          </a>
+        </div>
+
+      </div>
     </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); }});
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
 {% endblock %}

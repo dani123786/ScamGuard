@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard — ScamGuard{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --teal:   #06d6a0;
+  --rose:   #fb4f4f;
+  --amber:  #f59e0b;
+  --purple: #a78bfa;
+  --navy:   #080d1a;
+  --navy-2: #0e1628;
+  --navy-3: #141e35;
+  --border: rgba(255,255,255,0.07);
+  --muted:  #7a8aaa;
+  --font-h: 'Outfit', sans-serif;
+  --font-b: 'DM Sans', sans-serif;
+  --font-m: 'DM Mono', monospace;
+}
+
+/* ── Admin Header ─────────────────────────────────────────── */
+.admin-header {
+  background: linear-gradient(135deg, #0a1628 0%, #0e1a30 50%, #0d1f3c 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 0 36px;
+}
+.admin-header h1 {
+  font-family: var(--font-h); font-weight: 800;
+  font-size: clamp(1.5rem, 2.8vw, 2rem);
+  letter-spacing: -0.03em; color: #fff; margin-bottom: 6px;
+}
+.admin-header .lead { color: var(--muted); font-size: 0.9rem; font-weight: 300; margin: 0; }
+
+.live-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(6,214,160,0.1); border: 1px solid rgba(6,214,160,0.25);
+  color: var(--teal); padding: 5px 14px; border-radius: 100px;
+  font-size: 0.8rem; font-weight: 600;
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--teal);
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.7); }
+}
+.sync-note { font-size: 0.75rem; color: rgba(122,138,170,0.6); margin-top: 6px; }
+
+/* ── Stat cards ──────────────────────────────────────────── */
+.stat-card {
+  background: var(--navy-2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 22px 24px;
+  display: flex; align-items: center; gap: 18px;
+  height: 100%; transition: border-color 0.2s, transform 0.2s;
+  border-top: 3px solid;
+}
+.stat-card:hover { transform: translateY(-2px); }
+.stat-card.blue   { border-top-color: #3b82f6; }
+.stat-card.red    { border-top-color: var(--rose); }
+.stat-card.amber  { border-top-color: var(--amber); }
+.stat-card.purple { border-top-color: var(--purple); }
+
+.stat-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; flex-shrink: 0;
+}
+.stat-icon.blue   { background: rgba(59,130,246,0.12);  color: #3b82f6; }
+.stat-icon.red    { background: rgba(251,79,79,0.1);    color: var(--rose); }
+.stat-icon.amber  { background: rgba(245,158,11,0.1);   color: var(--amber); }
+.stat-icon.purple { background: rgba(167,139,250,0.1);  color: var(--purple); }
+
+.stat-body {}
+.stat-number { font-family: var(--font-h); font-size: 1.8rem; font-weight: 800; line-height: 1; color: #fff; margin: 0; }
+.stat-label  { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+
+/* ── Search bar ──────────────────────────────────────────── */
+.admin-search-wrap {
+  background: var(--navy-2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 24px; margin-bottom: 24px;
+}
+.admin-search-wrap .form-control,
+.admin-search-wrap .form-select {
+  background: var(--navy-3) !important;
+  border: 1px solid rgba(255,255,255,0.09) !important;
+  color: #e8edf8 !important; border-radius: 10px;
+  font-size: 0.875rem; font-family: var(--font-b);
+}
+.admin-search-wrap .form-control:focus,
+.admin-search-wrap .form-select:focus {
+  border-color: rgba(6,214,160,0.35) !important;
+  box-shadow: 0 0 0 3px rgba(6,214,160,0.07) !important;
+}
+.admin-search-wrap .form-control::placeholder { color: rgba(122,138,170,0.45); }
+.admin-search-wrap .form-select option { background: var(--navy-3); color: #e8edf8; }
+
+.count-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(6,214,160,0.1); border: 1px solid rgba(6,214,160,0.2);
+  color: var(--teal); padding: 5px 14px; border-radius: 100px;
+  font-size: 0.78rem; font-weight: 600; font-family: var(--font-m);
+  white-space: nowrap;
+}
+
+/* ── Report cards ────────────────────────────────────────── */
+.report-card {
+  background: var(--navy-2); border: 1px solid var(--border);
+  border-radius: 14px; margin-bottom: 14px; overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.report-card:hover { border-color: rgba(255,255,255,0.12); box-shadow: 0 8px 32px rgba(0,0,0,0.25); }
+
+.report-card-header {
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+
+.report-card-body { padding: 18px 20px; }
+
+/* Severity */
+.severity-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 100px;
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.severity-CRITICAL { background: rgba(251,79,79,0.15);  color: #ff7070; border: 1px solid rgba(251,79,79,0.3); }
+.severity-HIGH     { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+.severity-MEDIUM   { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+.severity-LOW      { background: rgba(6,214,160,0.1);   color: var(--teal);   border: 1px solid rgba(6,214,160,0.2); }
+.severity-UNKNOWN  { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+
+/* Scam type tag */
+.scam-type-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2);
+  color: #60a5fa; padding: 3px 10px; border-radius: 100px;
+  font-size: 0.75rem; font-weight: 600;
+}
+
+/* Loss badges */
+.loss-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(251,79,79,0.1); border: 1px solid rgba(251,79,79,0.2);
+  color: var(--rose); padding: 3px 10px; border-radius: 100px;
+  font-size: 0.75rem; font-weight: 600;
+}
+.no-loss-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(6,214,160,0.08); border: 1px solid rgba(6,214,160,0.15);
+  color: var(--teal); padding: 3px 10px; border-radius: 100px;
+  font-size: 0.75rem; font-weight: 500;
+}
+
+/* Timestamp */
+.report-time { font-family: var(--font-m); font-size: 0.72rem; color: var(--muted); }
+
+/* Detail grid */
+.detail-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px; margin-bottom: 14px;
+}
+.detail-item label {
+  font-size: 0.68rem; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.07em; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;
+}
+.detail-item span { font-size: 0.875rem; font-weight: 500; color: #e8edf8; display: block; }
+
+/* Description box */
+.description-box {
+  background: var(--navy-3); border: 1px solid var(--border);
+  border-left: 3px solid rgba(59,130,246,0.5);
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 0.875rem; color: #c0c8d8; margin-top: 12px; line-height: 1.6;
+}
+.description-box strong { color: #fff; font-size: 0.78rem; display: block; margin-bottom: 5px; }
+
+/* AI analysis box */
+.ai-analysis-box {
+  background: rgba(167,139,250,0.05); border: 1px solid rgba(167,139,250,0.15);
+  border-radius: 12px; padding: 16px 18px; margin-top: 12px;
+}
+.ai-analysis-box h6 {
+  font-family: var(--font-h); font-size: 0.82rem; font-weight: 700;
+  color: var(--purple); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ai-analysis-box small { color: var(--muted); font-size: 0.72rem; display: block; margin-bottom: 2px; }
+.ai-analysis-box span  { font-size: 0.82rem; color: #c0c8d8; }
+
+/* Authority badge */
+.auth-badge {
+  display: inline-flex; align-items: center;
+  background: rgba(251,79,79,0.1); border: 1px solid rgba(251,79,79,0.2);
+  color: var(--rose); padding: 2px 9px; border-radius: 100px;
+  font-size: 0.7rem; font-weight: 600; margin: 2px;
+}
+.authority-warn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(251,79,79,0.08); border: 1px solid rgba(251,79,79,0.2);
+  color: var(--rose); padding: 5px 12px; border-radius: 8px;
+  font-size: 0.78rem; font-weight: 600; margin-bottom: 6px;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 80px 20px;
+  background: var(--navy-2); border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.empty-state-icon {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; color: var(--muted);
+  margin: 0 auto 20px;
+}
+.empty-state h4 { font-family: var(--font-h); color: #fff; margin-bottom: 6px; }
+.empty-state p  { color: var(--muted); font-size: 0.875rem; margin: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Admin header ──────────────────────────────────────── -->
+<div class="admin-header">
+  <div class="container">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+      <div>
+        <h1>
+          <i class="fas fa-shield-alt" style="color:var(--teal);margin-right:10px;font-size:1.4rem;"></i>
+          Admin Dashboard
+        </h1>
+        <p class="lead">Monitor all submitted scam reports in real-time</p>
+      </div>
+      <div class="text-end">
+        <div class="live-badge"><span class="live-dot"></span> Live</div>
+        <p class="sync-note mt-2 mb-0">Auto-synced with Supabase</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mb-5">
+
+  {% if error %}
+  <div class="alert alert-danger mt-4">
+    <i class="fas fa-exclamation-triangle me-2"></i> <strong>Error:</strong> {{ error }}
+  </div>
+  {% endif %}
+
+  <!-- ── Stat cards ──────────────────────────────────────── -->
+  <div class="row g-3 mb-4 mt-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card blue">
+        <div class="stat-icon blue"><i class="fas fa-flag"></i></div>
+        <div class="stat-body">
+          <div class="stat-number">{{ total_reports }}</div>
+          <div class="stat-label">Total Reports</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card red">
+        <div class="stat-icon red"><i class="fas fa-skull-crossbones"></i></div>
+        <div class="stat-body">
+          <div class="stat-number">{{ high_risk }}</div>
+          <div class="stat-label">High / Critical Risk</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card amber">
+        <div class="stat-icon amber"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-body">
+          <div class="stat-number">${{ "{:,.0f}".format(total_loss) if total_loss > 0 else '0' }}</div>
+          <div class="stat-label">Total Reported Loss</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card purple">
+        <div class="stat-icon purple"><i class="fas fa-chart-bar"></i></div>
+        <div class="stat-body">
+          <div class="stat-number" style="font-size:1.1rem;line-height:1.3;">{{ top_scam_type }}</div>
+          <div class="stat-label">Most Common Scam</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Search & filter ──────────────────────────────────── -->
+  <div class="admin-search-wrap">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <input type="text" class="form-control" id="searchInput"
+               placeholder="🔍 Search by description, scam type, email…"
+               onkeyup="filterReports()">
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" id="filterScamType" onchange="filterReports()">
+          <option value="">All Scam Types</option>
+          {% set scam_types = reports | map(attribute='scam_type') | unique | list %}
+          {% for st in scam_types %}
+            {% if st %}<option value="{{ st }}">{{ st.replace('_',' ').title() }}</option>{% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" id="filterLoss" onchange="filterReports()">
+          <option value="">All Reports</option>
+          <option value="yes">Lost Money</option>
+          <option value="no">No Loss</option>
+        </select>
+      </div>
+      <div class="col-md-2 text-end">
+        <span class="count-badge" id="visibleCount">
+          <i class="fas fa-file-alt"></i> {{ total_reports }} reports
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Reports list ─────────────────────────────────────── -->
+  <div id="reportsContainer">
+    {% if reports %}
+      {% for report in reports %}
+      <div class="report-card"
+           data-scam-type="{{ report.scam_type or '' }}"
+           data-lost="{{ report.lost_money or 'no' }}"
+           data-search="{{ (report.description or '') ~ ' ' ~ (report.scam_type or '') ~ ' ' ~ (report.reporter_email or '') ~ ' ' ~ (report.scammer_contact or '') | lower }}">
+
+        <!-- Header -->
+        <div class="report-card-header">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="scam-type-badge">
+              <i class="fas fa-tag"></i>
+              {{ (report.scam_type or 'Unknown').replace('_', ' ').title() }}
+            </span>
+
+            {% if report.ai_analysis %}
+              {% set severity = report.ai_analysis.get('severity', 'UNKNOWN') %}
+              <span class="severity-badge severity-{{ severity }}">
+                <i class="fas fa-robot"></i> {{ severity }}
+              </span>
+            {% endif %}
+
+            {% if report.lost_money == 'yes' %}
+              <span class="loss-badge">
+                <i class="fas fa-dollar-sign"></i> Lost: {{ report.amount or 'Unknown' }}
+              </span>
+            {% else %}
+              <span class="no-loss-badge">
+                <i class="fas fa-check-circle"></i> No Financial Loss
+              </span>
+            {% endif %}
+          </div>
+          <div class="report-time">
+            <i class="fas fa-clock me-1" style="opacity:0.5;"></i>
+            {{ report.submitted_at or 'Unknown date' }}
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="report-card-body">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label><i class="fas fa-phone"></i> Contact Method</label>
+              <span>{{ (report.contact_method or 'Not specified').replace('_',' ').title() }}</span>
+            </div>
+            <div class="detail-item">
+              <label><i class="fas fa-calendar"></i> Incident Date</label>
+              <span>{{ report.incident_date or 'Not specified' }}</span>
+            </div>
+            <div class="detail-item">
+              <label><i class="fas fa-user-secret"></i> Scammer Contact</label>
+              <span>{{ report.scammer_contact or 'Not provided' }}</span>
+            </div>
+            <div class="detail-item">
+              <label><i class="fas fa-envelope"></i> Reporter</label>
+              <span>{{ report.reporter_email or 'Anonymous' }}</span>
+            </div>
+          </div>
+
+          {% if report.description %}
+          <div class="description-box">
+            <strong><i class="fas fa-align-left me-1"></i> Description</strong>
+            {{ report.description }}
+          </div>
+          {% endif %}
+
+          {% if report.ai_analysis %}
+          <div class="ai-analysis-box">
+            <h6><i class="fas fa-robot"></i> AI Analysis</h6>
+            <div class="row g-2">
+              {% if report.ai_analysis.get('victim_advice') %}
+              <div class="col-md-6">
+                <small>Victim Advice</small>
+                <span>{{ report.ai_analysis.victim_advice }}</span>
+              </div>
+              {% endif %}
+              {% if report.ai_analysis.get('community_impact') %}
+              <div class="col-md-6">
+                <small>Community Impact</small>
+                <span>{{ report.ai_analysis.community_impact }}</span>
+              </div>
+              {% endif %}
+              {% if report.ai_analysis.get('should_report_to_authorities') == 'YES' %}
+              <div class="col-12">
+                <div class="authority-warn">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  Should Report to Authorities
+                </div>
+                {% if report.ai_analysis.get('authorities_to_contact') %}
+                  {% for auth in report.ai_analysis.authorities_to_contact %}
+                    <span class="auth-badge">{{ auth }}</span>
+                  {% endfor %}
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+      {% endfor %}
+
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+      <h4>No Reports Yet</h4>
+      <p>Reports submitted by users will appear here automatically.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterReports() {
+  const search   = document.getElementById('searchInput').value.toLowerCase();
+  const scamType = document.getElementById('filterScamType').value.toLowerCase();
+  const lossFilter = document.getElementById('filterLoss').value.toLowerCase();
+
+  const cards = document.querySelectorAll('#reportsContainer .report-card');
+  let visible = 0;
+
+  cards.forEach(card => {
+    const cardSearch  = card.dataset.search || '';
+    const cardScamType= card.dataset.scamType || '';
+    const cardLost    = card.dataset.lost || '';
+
+    const matchSearch = !search   || cardSearch.includes(search);
+    const matchScam   = !scamType || cardScamType === scamType;
+    const matchLoss   = !lossFilter || cardLost === lossFilter;
+
+    if (matchSearch && matchScam && matchLoss) {
+      card.style.display = 'block'; visible++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  document.getElementById('visibleCount').innerHTML =
+    '<i class="fas fa-file-alt"></i> ' + visible + ' report' + (visible !== 1 ? 's' : '');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}Verify Contact — ScamGuard{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --teal:#06d6a0;--rose:#fb4f4f;--amber:#f59e0b;
+  --navy:#080d1a;--navy-2:#0e1628;--navy-3:#141e35;
+  --border:rgba(255,255,255,0.07);--muted:#7a8aaa;--font-h:'Outfit',sans-serif;
+}
+.vf-header{background:linear-gradient(135deg,#0a1628 0%,#111d38 100%);border-bottom:1px solid var(--border);padding:48px 0 36px}
+.vf-header h1{font-family:var(--font-h);font-weight:800;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.03em;color:#fff;margin-bottom:6px}
+.vf-header h1 span{color:var(--teal)}
+.vf-header .lead{color:var(--muted);font-size:.95rem;font-weight:300;margin:0}
+.vf-wrap{max-width:680px;margin:0 auto;padding:40px 20px 64px}
+
+/* How it works banner */
+.vf-how{display:flex;gap:16px;align-items:flex-start;background:rgba(6,214,160,.06);
+  border:1px solid rgba(6,214,160,.15);border-radius:14px;padding:20px 22px;margin-bottom:24px}
+.vf-how-icon{width:44px;height:44px;border-radius:12px;background:rgba(6,214,160,.12);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--teal);flex-shrink:0}
+.vf-how-text h5{font-family:var(--font-h);font-size:.95rem;font-weight:700;color:#fff;margin-bottom:4px}
+.vf-how-text p{font-size:.82rem;color:#9fe1cb;line-height:1.6;margin:0}
+
+/* Form card */
+.vf-card{background:var(--navy-2);border:1px solid var(--border);border-radius:16px;padding:28px}
+.vf-card h3{font-family:var(--font-h);font-size:1.15rem;font-weight:700;color:#fff;
+  margin-bottom:24px;display:flex;align-items:center;gap:9px}
+.vf-card h3 i{color:var(--teal);font-size:1rem}
+
+.vf-field{margin-bottom:20px}
+.vf-label{display:block;font-size:.78rem;font-weight:500;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--muted);margin-bottom:8px}
+.vf-input{width:100%;background:var(--navy-3);border:1px solid rgba(255,255,255,.09);
+  border-radius:10px;color:#e8edf8;font-family:'DM Sans',sans-serif;font-size:.9rem;
+  padding:13px 16px;outline:none;transition:border-color .2s,box-shadow .2s}
+.vf-input:focus{border-color:rgba(6,214,160,.35);box-shadow:0 0 0 3px rgba(6,214,160,.08)}
+.vf-input::placeholder{color:rgba(122,138,170,.45)}
+.vf-hint{font-size:.76rem;color:rgba(122,138,170,.55);margin-top:6px;display:flex;gap:5px;align-items:center}
+
+/* Search type toggle */
+.vf-type-group{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vf-type-opt{position:relative}
+.vf-type-opt input[type="radio"]{position:absolute;opacity:0;width:0}
+.vf-type-opt label{display:flex;align-items:center;justify-content:center;gap:7px;
+  background:var(--navy-3);border:1px solid rgba(255,255,255,.09);border-radius:10px;
+  padding:10px 14px;cursor:pointer;font-size:.82rem;color:var(--muted);
+  transition:all .18s;white-space:nowrap}
+.vf-type-opt label i{font-size:11px}
+.vf-type-opt label:hover{border-color:rgba(255,255,255,.18);color:#e8edf8}
+.vf-type-opt input:checked + label{border-color:rgba(6,214,160,.35);
+  background:rgba(6,214,160,.08);color:var(--teal)}
+
+/* Submit button */
+.btn-verify{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+  background:var(--teal);color:#061210;font-family:'DM Sans',sans-serif;font-weight:700;
+  font-size:.95rem;padding:13px;border:none;border-radius:10px;cursor:pointer;
+  margin-top:20px;transition:all .2s}
+.btn-verify:hover{background:#04a87e;transform:translateY(-1px);box-shadow:0 8px 20px rgba(6,214,160,.25)}
+.btn-verify:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Loading state */
+#loadingState{display:none;text-align:center;margin-top:24px;padding:28px;
+  background:var(--navy-2);border:1px solid rgba(6,214,160,.12);border-radius:14px}
+.vf-spinner{width:48px;height:48px;margin:0 auto 14px;animation:spin 1.3s linear infinite}
+.vf-spinner circle:last-child{stroke-dasharray:35 100;stroke-linecap:round}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loadingState p{color:var(--muted);font-size:.875rem;margin:0}
+#loadingState strong{color:#e8edf8;display:block;margin-bottom:4px}
+
+/* Results overrides — verify.js injects Bootstrap HTML, we theme it */
+#resultsContainer .alert-success{background:rgba(6,214,160,.08)!important;border-color:rgba(6,214,160,.2)!important;border-radius:14px!important;color:#9fe1cb!important}
+#resultsContainer .alert-danger {background:rgba(251,79,79,.08)!important;border-color:rgba(251,79,79,.2)!important;border-radius:14px!important;color:#f09595!important}
+#resultsContainer .alert-warning{background:rgba(245,158,11,.08)!important;border-color:rgba(245,158,11,.2)!important;border-radius:14px!important;color:#fac775!important}
+#resultsContainer .alert-heading{color:#fff!important;font-family:var(--font-h);font-weight:700}
+#resultsContainer hr{border-color:var(--border)!important}
+#resultsContainer p,#resultsContainer li{color:#c0c8d8!important;font-size:.875rem}
+#resultsContainer strong{color:#e8edf8!important}
+#resultsContainer .text-success{color:var(--teal)!important}
+#resultsContainer .text-danger {color:var(--rose)!important}
+#resultsContainer .text-primary {color:var(--teal)!important}
+#resultsContainer .text-muted   {color:var(--muted)!important}
+#resultsContainer .fa-3x{font-size:1.8rem!important}
+
+/* detail-card & stat-box used by verify.js */
+#resultsContainer .detail-card{background:var(--navy-2);border:1px solid var(--border);
+  border-radius:14px;padding:22px 24px;margin-top:14px}
+#resultsContainer .detail-card h5{font-family:var(--font-h);font-size:.95rem;font-weight:700;color:#fff;margin-bottom:16px}
+#resultsContainer .stat-box{background:var(--navy-3)!important;border:1px solid var(--border);
+  border-radius:10px;padding:16px!important}
+#resultsContainer .stat-box h6{color:var(--muted)!important;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
+#resultsContainer .stat-box h3{font-family:var(--font-h);font-size:1.6rem;font-weight:800;letter-spacing:-.02em}
+#resultsContainer .card{background:var(--navy-3)!important;border:1px solid var(--border)!important;border-radius:12px!important}
+#resultsContainer .card-body{padding:16px 20px!important}
+#resultsContainer .card-subtitle{color:var(--muted)!important;font-size:.78rem}
+#resultsContainer .badge{font-size:.72rem!important;padding:4px 10px!important;border-radius:20px!important}
+#resultsContainer .badge.bg-danger  {background:rgba(251,79,79,.15)!important;color:var(--rose)!important;border:1px solid rgba(251,79,79,.25)!important}
+#resultsContainer .badge.bg-secondary{background:rgba(255,255,255,.06)!important;color:var(--muted)!important}
+
+/* Info card */
+.vf-info{background:var(--navy-2);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:20px}
+.vf-info h4{font-family:var(--font-h);font-size:.95rem;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.vf-info h4 i{color:var(--teal);font-size:.9rem}
+.vf-info-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.vf-info-list li{display:flex;align-items:flex-start;gap:9px;font-size:.845rem;color:#c0c8d8;line-height:1.5}
+.vf-info-list li::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:5px}
+
+/* Warning chip */
+.vf-warning-chip{display:flex;gap:10px;align-items:flex-start;background:rgba(245,158,11,.06);
+  border:1px solid rgba(245,158,11,.15);border-radius:12px;padding:14px 16px;
+  margin-top:20px;font-size:.82rem;color:#fac775;line-height:1.55}
+.vf-warning-chip i{color:var(--amber);flex-shrink:0;font-size:.85rem;margin-top:1px}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="vf-header">
+  <div class="container">
+    <h1><i class="fas fa-user-shield" style="color:var(--teal);margin-right:10px;font-size:1.4rem;"></i>Verify <span>Contact</span></h1>
+    <p class="lead">Check if an email or phone number has been reported as a scammer</p>
+  </div>
+</div>
+
+<div class="vf-wrap">
+
+  <!-- How it works -->
+  <div class="vf-how">
+    <div class="vf-how-icon"><i class="fas fa-database"></i></div>
+    <div class="vf-how-text">
+      <h5>How it works</h5>
+      <p>Enter any email address or phone number to search our community-reported database. If a match is found, you'll see detailed report history and risk statistics.</p>
+    </div>
+  </div>
+
+  <!-- Search form -->
+  <div class="vf-card">
+    <h3><i class="fas fa-search"></i> Verify Contact Information</h3>
+    <form id="verifyForm">
+      <div class="vf-field">
+        <label class="vf-label">Email or phone number</label>
+        <input type="text" class="vf-input" id="searchQuery"
+          placeholder="e.g. scammer@example.com or +1 234 567 8900" required>
+        <p class="vf-hint"><i class="fas fa-info-circle"></i> Enter the contact you want to verify</p>
+      </div>
+
+      <div class="vf-field">
+        <label class="vf-label">Search type</label>
+        <div class="vf-type-group">
+          <div class="vf-type-opt">
+            <input type="radio" name="searchType" id="typeAuto" value="auto" checked>
+            <label for="typeAuto"><i class="fas fa-magic"></i> Auto Detect</label>
+          </div>
+          <div class="vf-type-opt">
+            <input type="radio" name="searchType" id="typeEmail" value="email">
+            <label for="typeEmail"><i class="fas fa-envelope"></i> Email</label>
+          </div>
+          <div class="vf-type-opt">
+            <input type="radio" name="searchType" id="typePhone" value="phone">
+            <label for="typePhone"><i class="fas fa-phone"></i> Phone</label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-verify" id="verifyBtn">
+        <i class="fas fa-search"></i> Verify Contact
+      </button>
+    </form>
+
+    <!-- Loading -->
+    <div id="loadingState">
+      <svg class="vf-spinner" viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(6,214,160,0.15)" stroke-width="4"/>
+        <circle cx="24" cy="24" r="20" fill="none" stroke="#06d6a0" stroke-width="4"
+          stroke-dasharray="35 100" stroke-linecap="round" transform="rotate(-90 24 24)"/>
+      </svg>
+      <strong>Searching database…</strong>
+      <p>Checking reported contacts for matches</p>
+    </div>
+
+    <!-- Results injected by verify.js -->
+    <div id="resultsContainer" style="display:none;margin-top:20px;"></div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="vf-warning-chip">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span><strong style="color:#e8edf8;">Important:</strong> This tool searches our community-reported database. A contact not found does not guarantee it is safe — always exercise caution with unknown contacts.</span>
+  </div>
+
+  <!-- Why verify -->
+  <div class="vf-info">
+    <h4><i class="fas fa-clock"></i> Why verify contacts?</h4>
+    <ul class="vf-info-list">
+      <li>Protect yourself from known, previously-reported scammers</li>
+      <li>See patterns in scammer behaviour across multiple reports</li>
+      <li>Learn from other victims' experiences before it's too late</li>
+      <li>Make informed decisions when approached by suspicious contacts</li>
+    </ul>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/verify.js') }}"></script>
+{% endblock %}

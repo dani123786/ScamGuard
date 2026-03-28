@@ -1,73 +1,166 @@
 {% extends "base.html" %}
+{% block title %}Scam Awareness — ScamGuard{% endblock %}
 
-{% block title %}Scam Awareness - Learn About Online Scams{% endblock %}
+{% block extra_css %}
+<style>
+:root {
+  --teal:#06d6a0;--rose:#fb4f4f;--amber:#f59e0b;--purple:#a78bfa;
+  --navy:#080d1a;--navy-2:#0e1628;--navy-3:#141e35;
+  --border:rgba(255,255,255,0.07);--muted:#7a8aaa;--font-h:'Outfit',sans-serif;
+}
+.aw-header{background:linear-gradient(135deg,#0a1628 0%,#111d38 100%);border-bottom:1px solid var(--border);padding:48px 0 36px}
+.aw-header h1{font-family:var(--font-h);font-weight:800;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.03em;color:#fff;margin-bottom:6px}
+.aw-header h1 span{color:var(--teal)}
+.aw-header .lead{color:var(--muted);font-size:.95rem;font-weight:300;margin:0}
+.aw-wrap{padding:48px 0 64px}
+
+/* Scam cards grid */
+.scam-card{background:var(--navy-2);border:1px solid var(--border);border-radius:16px;overflow:hidden;
+  display:flex;flex-direction:column;height:100%;transition:all .25s;position:relative}
+.scam-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--teal),#04c4a0);opacity:0;transition:opacity .25s}
+.scam-card:hover{border-color:rgba(6,214,160,0.2);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.35)}
+.scam-card:hover::before{opacity:1}
+
+.scam-card-header{background:linear-gradient(135deg,#0d1f3c 0%,#111e38 100%);
+  border-bottom:1px solid var(--border);padding:22px 24px;display:flex;align-items:center;gap:14px}
+.scam-card-header i{font-size:1.5rem;color:var(--teal);width:28px;text-align:center;flex-shrink:0}
+.scam-card-header h4{font-family:var(--font-h);font-size:1rem;font-weight:700;color:#fff;margin:0;line-height:1.3}
+
+.scam-card-body{padding:20px 24px;display:flex;flex-direction:column;flex:1}
+.scam-card-body p{font-size:.85rem;color:#c0c8d8;line-height:1.65;margin-bottom:16px}
+
+.scam-warning-title{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--rose);display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.scam-warning-list{list-style:none;padding:0;margin:0 0 20px;display:flex;flex-direction:column;gap:6px;flex:1}
+.scam-warning-list li{font-size:.8rem;color:#9aaccc;display:flex;gap:8px;line-height:1.45}
+.scam-warning-list li::before{content:'›';color:var(--rose);font-weight:700;flex-shrink:0}
+
+.btn-learn-more{display:flex;align-items:center;justify-content:center;gap:7px;
+  background:rgba(6,214,160,0.1);border:1px solid rgba(6,214,160,0.2);
+  color:var(--teal);font-size:.82rem;font-weight:600;padding:10px 16px;
+  border-radius:9px;text-decoration:none;transition:all .2s;margin-top:auto}
+.btn-learn-more:hover{background:rgba(6,214,160,0.18);color:var(--teal);gap:10px}
+
+/* Safety tips */
+.tips-wrap{background:var(--navy-2);border:1px solid var(--border);border-radius:18px;padding:40px;margin-top:56px}
+.tips-header{text-align:center;margin-bottom:32px}
+.tips-header h2{font-family:var(--font-h);font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:6px}
+.tips-header p{font-size:.875rem;color:var(--muted);margin:0}
+
+.tip-card{background:var(--navy-3);border:1px solid var(--border);border-radius:14px;padding:28px;height:100%}
+.tip-card-title{display:flex;align-items:center;gap:10px;font-family:var(--font-h);
+  font-size:1rem;font-weight:700;margin-bottom:18px}
+.tip-card-title.dos  {color:var(--teal)}
+.tip-card-title.donts{color:var(--rose)}
+.tip-card-title i{font-size:1.1rem}
+
+.tip-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+.tip-list li{display:flex;align-items:flex-start;gap:10px;font-size:.855rem;color:#c0c8d8;line-height:1.5}
+.tip-dot-green{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:5px}
+.tip-dot-red  {width:6px;height:6px;border-radius:50%;background:var(--rose); flex-shrink:0;margin-top:5px}
+
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="container">
-        <h1 class="display-5 fw-bold"><i class="fas fa-lightbulb"></i> Scam Awareness</h1>
-        <p class="lead">Learn about different types of online scams and how to protect yourself</p>
-    </div>
+<div class="aw-header">
+  <div class="container">
+    <h1><i class="fas fa-lightbulb" style="color:var(--teal);margin-right:10px;font-size:1.5rem;"></i>Scam <span>Awareness</span></h1>
+    <p class="lead">Learn to recognise, avoid, and report the most common online scam types</p>
+  </div>
 </div>
 
-<div class="container my-5">
+<div class="aw-wrap">
+  <div class="container">
+
+    <!-- Scam cards -->
     <div class="row g-4">
-        {% for key, scam in scams.items() %}
-        <div class="col-md-6 col-lg-4">
-            <div class="scam-card">
-                <div class="scam-card-header">
-                    <i class="fas {{ scam.icon }}"></i>
-                    <h4>{{ scam.title }}</h4>
-                </div>
-                <div class="scam-card-body">
-                    <p>{{ scam.description }}</p>
-                    <div class="mt-3">
-                        <h6 class="text-danger"><i class="fas fa-exclamation-circle"></i> Warning Signs:</h6>
-                        <ul class="small">
-                            {% for sign in scam.warning_signs[:3] %}
-                            <li>{{ sign }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <a href="/awareness/{{ key }}" class="btn btn-primary btn-sm w-100">
-                        Learn More <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
+      {% for key, scam in scams.items() %}
+      <div class="col-md-6 col-lg-4 reveal" style="transition-delay:{{ loop.index0 * 0.06 }}s">
+        <div class="scam-card">
+          <div class="scam-card-header">
+            <i class="fas {{ scam.icon }}"></i>
+            <h4>{{ scam.title }}</h4>
+          </div>
+          <div class="scam-card-body">
+            <p>{{ scam.description }}</p>
+            <div class="scam-warning-title">
+              <i class="fas fa-exclamation-circle"></i> Warning signs
             </div>
+            <ul class="scam-warning-list">
+              {% for sign in scam.warning_signs[:3] %}
+              <li>{{ sign }}</li>
+              {% endfor %}
+            </ul>
+            <a href="/awareness/{{ key }}" class="btn-learn-more">
+              Learn more <i class="fas fa-arrow-right fa-xs"></i>
+            </a>
+          </div>
         </div>
-        {% endfor %}
+      </div>
+      {% endfor %}
     </div>
 
-    <div class="tips-section mt-5">
-        <h2 class="text-center mb-4">General Safety Tips</h2>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="tip-card">
-                    <h5><i class="fas fa-check-circle text-success"></i> Do's</h5>
-                    <ul>
-                        <li>Verify sender identity before responding</li>
-                        <li>Use strong, unique passwords</li>
-                        <li>Enable two-factor authentication</li>
-                        <li>Keep software and antivirus updated</li>
-                        <li>Research before making online purchases</li>
-                        <li>Trust your instincts</li>
-                    </ul>
-                </div>
+    <!-- Safety Tips -->
+    <div class="tips-wrap reveal">
+      <div class="tips-header">
+        <h2>General Safety Tips</h2>
+        <p>Follow these principles to stay protected online</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="tip-card">
+            <div class="tip-card-title dos">
+              <i class="fas fa-check-circle"></i> Do's
             </div>
-            <div class="col-md-6">
-                <div class="tip-card">
-                    <h5><i class="fas fa-times-circle text-danger"></i> Don'ts</h5>
-                    <ul>
-                        <li>Never share passwords or PINs</li>
-                        <li>Don't click suspicious links</li>
-                        <li>Avoid sharing personal info with strangers</li>
-                        <li>Don't send money to people you haven't met</li>
-                        <li>Never pay upfront fees for prizes</li>
-                        <li>Don't rush into decisions under pressure</li>
-                    </ul>
-                </div>
-            </div>
+            <ul class="tip-list">
+              {% for tip in [
+                "Verify sender identity before responding",
+                "Use strong, unique passwords for every account",
+                "Enable two-factor authentication everywhere",
+                "Keep software and antivirus up to date",
+                "Research sellers before making online purchases",
+                "Trust your instincts — if it feels wrong, it is"
+              ] %}
+              <li><span class="tip-dot-green"></span>{{ tip }}</li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
+        <div class="col-md-6">
+          <div class="tip-card">
+            <div class="tip-card-title donts">
+              <i class="fas fa-times-circle"></i> Don'ts
+            </div>
+            <ul class="tip-list">
+              {% for tip in [
+                "Never share passwords, PINs, or OTPs",
+                "Don't click links in unsolicited emails or texts",
+                "Avoid sharing personal info with unknown contacts",
+                "Don't send money to people you haven't met in person",
+                "Never pay upfront fees to claim a prize or job",
+                "Don't rush into decisions when pressured for urgency"
+              ] %}
+              <li><span class="tip-dot-red"></span>{{ tip }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
+
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); }});
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
 {% endblock %}

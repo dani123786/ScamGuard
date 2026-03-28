@@ -1,175 +1,443 @@
 {% extends "base.html" %}
+{% block title %}AI Scam Checker — ScamGuard{% endblock %}
 
-{% block title %}Scam Checker - Verify Suspicious Content{% endblock %}
+{% block extra_css %}
+<style>
+:root {
+  --teal:   #06d6a0;
+  --amber:  #f59e0b;
+  --rose:   #fb4f4f;
+  --navy:   #080d1a;
+  --navy-2: #0e1628;
+  --navy-3: #141e35;
+  --border: rgba(255,255,255,0.07);
+  --muted:  #7a8aaa;
+  --font-h: 'Outfit', sans-serif;
+}
+
+/* ── Page header ─────────────────────────────────── */
+.ck-header {
+  background: linear-gradient(135deg, #0a1628 0%, #111d38 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 0 36px;
+}
+.ck-header h1 {
+  font-family: var(--font-h);
+  font-weight: 800;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.ck-header h1 span { color: var(--teal); }
+.ck-header .lead { color: var(--muted); font-size: 0.95rem; font-weight: 300; margin: 0; }
+
+/* ── Layout ──────────────────────────────────────── */
+.ck-wrap { max-width: 720px; margin: 0 auto; padding: 40px 20px 60px; }
+
+/* ── Tab switcher ────────────────────────────────── */
+.ck-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 6px;
+  margin-bottom: 24px;
+}
+.ck-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.ck-tab i { font-size: 12px; }
+.ck-tab:hover { color: #e8edf8; background: rgba(255,255,255,0.04); }
+.ck-tab.active {
+  background: var(--navy-3);
+  color: var(--teal);
+  border: 1px solid rgba(6,214,160,0.2);
+}
+
+/* ── Input card ──────────────────────────────────── */
+.ck-card {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  transition: border-color 0.2s;
+}
+.ck-card:focus-within { border-color: rgba(6,214,160,0.25); }
+
+.ck-tab-pane { display: none; }
+.ck-tab-pane.active { display: block; }
+
+.ck-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+.ck-textarea {
+  width: 100%;
+  background: var(--navy-3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  color: #e8edf8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 14px 16px;
+  resize: vertical;
+  min-height: 160px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.ck-textarea:focus {
+  border-color: rgba(6,214,160,0.35);
+  box-shadow: 0 0 0 3px rgba(6,214,160,0.08);
+}
+.ck-textarea::placeholder { color: rgba(122,138,170,0.5); }
+
+.ck-input {
+  width: 100%;
+  background: var(--navy-3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  color: #e8edf8;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.875rem;
+  padding: 13px 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.ck-input:focus {
+  border-color: rgba(6,214,160,0.35);
+  box-shadow: 0 0 0 3px rgba(6,214,160,0.08);
+}
+.ck-input::placeholder { color: rgba(122,138,170,0.45); font-family: 'DM Sans', sans-serif; }
+
+.ck-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: rgba(122,138,170,0.6);
+}
+.ck-hint i { font-size: 10px; }
+
+/* ── Analyse button ──────────────────────────────── */
+.btn-analyze {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  background: var(--teal);
+  color: #061210;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 12px 26px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-analyze:hover {
+  background: #04a87e;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(6,214,160,0.25);
+}
+.btn-analyze:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Loading state ───────────────────────────────── */
+#loading-indicator {
+  display: none;
+  margin-top: 24px;
+}
+.ck-loading {
+  background: var(--navy-2);
+  border: 1px solid rgba(6,214,160,0.15);
+  border-radius: 14px;
+  padding: 28px;
+  text-align: center;
+}
+.scan-ring {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+}
+.scan-ring svg { animation: spin 1.4s linear infinite; }
+.scan-ring-dot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: var(--teal);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ck-loading p {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+.ck-loading strong { color: #e8edf8; display: block; margin-bottom: 4px; font-size: 0.95rem; }
+
+/* ── Results ─────────────────────────────────────── */
+#results-container { display: none; margin-top: 24px; }
+
+.result-display { display: flex; flex-direction: column; gap: 14px; }
+
+/* Override Bootstrap list-group for dark theme */
+.list-group-item {
+  background: var(--navy-3) !important;
+  border-color: var(--border) !important;
+  color: #e8edf8 !important;
+  font-size: 0.875rem;
+}
+.list-group-item-danger {
+  background: rgba(251,79,79,0.08) !important;
+  border-color: rgba(251,79,79,0.15) !important;
+  color: #f09595 !important;
+}
+.list-group-item-success {
+  background: rgba(6,214,160,0.08) !important;
+  border-color: rgba(6,214,160,0.15) !important;
+  color: #9fe1cb !important;
+}
+
+/* Risk badge override */
+.badge.bg-danger  { background: rgba(251,79,79,0.2) !important; color: #fb4f4f !important; border: 1px solid rgba(251,79,79,0.3); }
+.badge.bg-warning { background: rgba(245,158,11,0.2) !important; color: #f59e0b !important; border: 1px solid rgba(245,158,11,0.3); }
+.badge.bg-success { background: rgba(6,214,160,0.2) !important; color: #06d6a0 !important; border: 1px solid rgba(6,214,160,0.3); }
+.badge.bg-primary { background: rgba(99,102,241,0.2) !important; color: #a5b4fc !important; border: 1px solid rgba(99,102,241,0.3); }
+.badge.bg-dark    { background: rgba(255,255,255,0.07) !important; color: #e8edf8 !important; }
+.badge.bg-secondary { background: rgba(255,255,255,0.07) !important; color: var(--muted) !important; }
+.badge.fs-6 { font-size: 0.85rem !important; padding: 6px 12px; border-radius: 8px; }
+
+/* Alert overrides for result sections */
+.alert-light {
+  background: var(--navy-3) !important;
+  border-color: var(--border) !important;
+  color: #e8edf8 !important;
+}
+.alert-dark {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: var(--border) !important;
+  color: #e8edf8 !important;
+}
+.alert-secondary {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: var(--border) !important;
+  color: #e8edf8 !important;
+}
+/* SVG risk ring track */
+circle[stroke="#e9ecef"] { stroke: rgba(255,255,255,0.08) !important; }
+
+/* Analyze another button */
+.btn-outline-secondary {
+  background: transparent !important;
+  border: 1px solid var(--border) !important;
+  color: var(--muted) !important;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  padding: 8px 18px;
+  transition: all 0.2s;
+}
+.btn-outline-secondary:hover {
+  border-color: rgba(6,214,160,0.3) !important;
+  color: var(--teal) !important;
+  background: rgba(6,214,160,0.05) !important;
+}
+
+h5, h6 { color: #fff !important; }
+.text-danger { color: var(--rose) !important; }
+.text-success { color: var(--teal) !important; }
+.text-primary { color: #a5b4fc !important; }
+.text-muted   { color: var(--muted) !important; }
+
+/* ── Info card ───────────────────────────────────── */
+.ck-info {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-top: 20px;
+}
+.ck-info h5 {
+  font-family: var(--font-h);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ck-info h5 i { color: var(--teal); font-size: 14px; }
+.ck-info p { font-size: 0.875rem; color: var(--muted); line-height: 1.65; margin-bottom: 12px; }
+.ck-info ul {
+  list-style: none;
+  padding: 0; margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ck-info ul li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 0.85rem;
+  color: #c0c8d8;
+  line-height: 1.5;
+}
+.ck-info ul li::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--teal);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+.ck-info small { font-size: 0.78rem; color: rgba(122,138,170,0.6); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="container">
-        <h1 class="display-5 fw-bold"><i class="fas fa-search"></i> Scam Checker</h1>
-        <p class="lead">Analyze emails and messages for potential scam indicators</p>
-    </div>
+<div class="ck-header">
+  <div class="container">
+    <h1><i class="fas fa-robot" style="color:var(--teal);margin-right:10px;font-size:1.6rem;"></i>AI <span>Scam Checker</span></h1>
+    <p class="lead">Powered by Gemini AI — Paste any email, message, or URL for instant analysis</p>
+  </div>
 </div>
 
-<div class="container my-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="checker-card">
-                <h4 class="mb-4">What would you like to check?</h4>
-                
-                <ul class="nav nav-tabs mb-4" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="email-tab" data-bs-toggle="tab" 
-                                data-bs-target="#email" type="button">
-                            <i class="fas fa-envelope"></i> Email Content
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="message-tab" data-bs-toggle="tab" 
-                                data-bs-target="#message" type="button">
-                            <i class="fas fa-comment"></i> Message
-                        </button>
-                    </li>
-                </ul>
+<div class="ck-wrap">
 
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="email" role="tabpanel">
-                        <form id="email-form">
-                            <div class="mb-3">
-                                <label class="form-label">Paste the email content below:</label>
-                                <textarea class="form-control" rows="8" id="email-content" 
-                                          placeholder="Paste the suspicious email content here..."></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i> Analyze Email
-                            </button>
-                        </form>
-                    </div>
+  <!-- Tab switcher -->
+  <div class="ck-tabs" role="tablist">
+    <button class="ck-tab active" data-target="email" onclick="switchTab('email')">
+      <i class="fas fa-envelope"></i> Email
+    </button>
+    <button class="ck-tab" data-target="message" onclick="switchTab('message')">
+      <i class="fas fa-comment-dots"></i> Message
+    </button>
+    <button class="ck-tab" data-target="url" onclick="switchTab('url')">
+      <i class="fas fa-link"></i> URL / Link
+    </button>
+  </div>
 
-                    <div class="tab-pane fade" id="message" role="tabpanel">
-                        <form id="message-form">
-                            <div class="mb-3">
-                                <label class="form-label">Paste the message content:</label>
-                                <textarea class="form-control" rows="8" id="message-content" 
-                                          placeholder="Paste the suspicious message here..."></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i> Analyze Message
-                            </button>
-                        </form>
-                    </div>
-                </div>
+  <!-- Input card -->
+  <div class="ck-card">
 
-                <div id="results-container" style="display: none;" class="mt-4">
-                    <hr>
-                    <h4 class="mb-3">Analysis Results</h4>
-                    <div id="results-content"></div>
-                </div>
-            </div>
-
-            <div class="info-card mt-4">
-                <h5><i class="fas fa-info-circle"></i> How it works</h5>
-                <p>Our scam checker analyzes content for common scam indicators including:</p>
-                <ul>
-                    <li>Urgent or threatening language</li>
-                    <li>Requests for personal or financial information</li>
-                    <li>Suspicious URLs or links</li>
-                    <li>Common scam keywords and phrases</li>
-                    <li>Security protocol issues</li>
-                </ul>
-                <p class="mb-0 small text-muted">
-                    <strong>Note:</strong> This tool provides guidance based on common patterns. 
-                    Always use your judgment and verify through official channels when in doubt.
-                </p>
-            </div>
-        </div>
+    <!-- Email pane -->
+    <div class="ck-tab-pane active" id="pane-email">
+      <label class="ck-label"><i class="fas fa-envelope me-1"></i>Paste email content</label>
+      <textarea class="ck-textarea" id="email-content"
+        placeholder="Paste the full suspicious email here, including subject and body…"></textarea>
+      <button class="btn-analyze" id="email-btn" onclick="checkContent('email')">
+        <i class="fas fa-search"></i> Analyse with AI
+      </button>
     </div>
-</div>
+
+    <!-- Message pane -->
+    <div class="ck-tab-pane" id="pane-message">
+      <label class="ck-label"><i class="fas fa-comment-dots me-1"></i>Paste message content</label>
+      <textarea class="ck-textarea" id="message-content"
+        placeholder="Paste the suspicious SMS, WhatsApp, or social media message here…"></textarea>
+      <button class="btn-analyze" id="message-btn" onclick="checkContent('message')">
+        <i class="fas fa-search"></i> Analyse with AI
+      </button>
+    </div>
+
+    <!-- URL pane -->
+    <div class="ck-tab-pane" id="pane-url">
+      <label class="ck-label"><i class="fas fa-link me-1"></i>Paste suspicious URL</label>
+      <input class="ck-input" type="text" id="url-content"
+        placeholder="e.g. http://paypa1-secure-login.com/verify">
+      <p class="ck-hint">
+        <i class="fas fa-info-circle"></i>
+        We'll check for phishing patterns, fake domains, and impersonated brands.
+      </p>
+      <button class="btn-analyze" id="url-btn" onclick="checkUrl()">
+        <i class="fas fa-search"></i> Analyse URL
+      </button>
+    </div>
+
+  </div><!-- /.ck-card -->
+
+  <!-- Loading indicator -->
+  <div id="loading-indicator">
+    <div class="ck-loading">
+      <div class="scan-ring">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(6,214,160,0.15)" stroke-width="4"/>
+          <circle cx="32" cy="32" r="26" fill="none" stroke="#06d6a0" stroke-width="4"
+            stroke-dasharray="40 124" stroke-linecap="round"/>
+        </svg>
+        <div class="scan-ring-dot"><i class="fas fa-shield-alt"></i></div>
+      </div>
+      <strong>Analysing with Gemini AI…</strong>
+      <p>Checking for scam patterns, phishing indicators, and red flags</p>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-container">
+    <div id="results-content"></div>
+  </div>
+
+  <!-- Info card -->
+  <div class="ck-info">
+    <h5><i class="fas fa-robot"></i> How the AI checker works</h5>
+    <p>Unlike simple keyword tools, our Gemini AI understands context and can detect:</p>
+    <ul>
+      <li>Phishing attempts and brand impersonation</li>
+      <li>Suspicious URLs, typosquatted domains, and hidden redirects</li>
+      <li>Cryptocurrency and investment scam patterns</li>
+      <li>Tech support, fake alert, and lottery scams</li>
+      <li>Social engineering and manipulation tactics</li>
+    </ul>
+    <small><i class="fas fa-exclamation-circle me-1"></i>Always verify through official channels when in doubt.</small>
+  </div>
+
+</div><!-- /.ck-wrap -->
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/checker.js') }}"></script>
 <script>
-document.getElementById('email-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    checkContent('email', document.getElementById('email-content').value);
-});
-
-document.getElementById('message-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    checkContent('message', document.getElementById('message-content').value);
-});
-
-async function checkContent(type, content) {
-    if (!content.trim()) {
-        alert('Please enter content to analyze');
-        return;
-    }
-
-    const response = await fetch('/api/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, content })
-    });
-
-    const results = await response.json();
-    displayResults(results);
-}
-
-function displayResults(results) {
-    const container = document.getElementById('results-container');
-    const content = document.getElementById('results-content');
-
-    let riskBadge = '';
-    if (results.risk_level === 'HIGH') {
-        riskBadge = '<span class="badge bg-danger fs-5">HIGH RISK</span>';
-    } else if (results.risk_level === 'MEDIUM') {
-        riskBadge = '<span class="badge bg-warning fs-5">MEDIUM RISK</span>';
-    } else {
-        riskBadge = '<span class="badge bg-success fs-5">LOW RISK</span>';
-    }
-
-    let warningsHTML = '';
-    if (results.warnings.length > 0) {
-        warningsHTML = `
-            <div class="alert alert-${results.risk_color} mt-3">
-                <h6><i class="fas fa-exclamation-triangle"></i> Warning Signs Detected:</h6>
-                <ul class="mb-0">
-                    ${results.warnings.map(w => `<li>${w}</li>`).join('')}
-                </ul>
-            </div>
-        `;
-    }
-
-    content.innerHTML = `
-        <div class="result-display">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Risk Level: ${riskBadge}</h5>
-                <div class="risk-score">
-                    <div class="circular-progress" data-score="${results.risk_score}">
-                        <svg width="100" height="100">
-                            <circle cx="50" cy="50" r="40" fill="none" stroke="#e9ecef" stroke-width="8"/>
-                            <circle cx="50" cy="50" r="40" fill="none" 
-                                    stroke="${results.risk_level === 'HIGH' ? '#dc3545' : results.risk_level === 'MEDIUM' ? '#ffc107' : '#28a745'}" 
-                                    stroke-width="8" 
-                                    stroke-dasharray="${2 * Math.PI * 40}" 
-                                    stroke-dashoffset="${2 * Math.PI * 40 * (1 - results.risk_score / 100)}"
-                                    transform="rotate(-90 50 50)"/>
-                        </svg>
-                        <div class="score-text">${results.risk_score}</div>
-                    </div>
-                </div>
-            </div>
-            
-            ${warningsHTML}
-            
-            <div class="alert alert-info mt-3">
-                <h6><i class="fas fa-lightbulb"></i> Recommendation:</h6>
-                <p class="mb-0">${results.recommendation}</p>
-            </div>
-        </div>
-    `;
-
-    container.style.display = 'block';
-    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+function switchTab(target) {
+  document.querySelectorAll('.ck-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ck-tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-target="' + target + '"]').classList.add('active');
+  document.getElementById('pane-' + target).classList.add('active');
+  document.getElementById('results-container').style.display = 'none';
+  document.getElementById('loading-indicator').style.display = 'none';
 }
 </script>
 {% endblock %}

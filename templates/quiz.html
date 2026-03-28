@@ -1,363 +1,472 @@
 {% extends "base.html" %}
-
-{% block title %}Scam Awareness Quiz{% endblock %}
-
-{% block content %}
-<div class="page-header">
-    <div class="container">
-        <h1 class="display-5 fw-bold"><i class="fas fa-question-circle"></i> Scam Awareness Quiz</h1>
-        <p class="lead">Test your knowledge and learn how to identify online scams</p>
-    </div>
-</div>
-
-<div class="container my-5">
-    <div id="quiz-container">
-        <!-- Name and Difficulty Selection -->
-        <div id="quiz-setup" class="text-center">
-            <div class="quiz-intro-card">
-                <i class="fas fa-brain fa-4x text-primary mb-4"></i>
-                <h2>Ready to Test Your Knowledge?</h2>
-                <p class="lead">Choose your difficulty level and let's get started!</p>
-                
-                <div class="difficulty-selection mb-4">
-                    <h4 class="mb-3">Select Difficulty Level:</h4>
-                    <div class="row g-3 justify-content-center">
-                        <div class="col-md-4">
-                            <div class="difficulty-card" data-difficulty="easy">
-                                <i class="fas fa-smile fa-3x text-success mb-3"></i>
-                                <h5>Easy</h5>
-                                <p>20 Questions</p>
-                                <p class="small">Perfect for beginners</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="difficulty-card" data-difficulty="medium">
-                                <i class="fas fa-meh fa-3x text-warning mb-3"></i>
-                                <h5>Medium</h5>
-                                <p>20 Questions</p>
-                                <p class="small">Test your knowledge</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="difficulty-card" data-difficulty="difficult">
-                                <i class="fas fa-frown fa-3x text-danger mb-3"></i>
-                                <h5>Difficult</h5>
-                                <p>20 Questions</p>
-                                <p class="small">For experts only</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Name Input (shown after difficulty selection) -->
-        <div id="name-input-section" style="display: none;">
-            <div class="quiz-intro-card">
-                <i class="fas fa-user fa-3x text-primary mb-4"></i>
-                <h3>Enter Your Name</h3>
-                <p class="lead mb-4">Let's personalize your quiz experience!</p>
-                
-                <div class="mb-4">
-                    <input type="text" class="form-control form-control-lg text-center mx-auto" 
-                           id="user-name" placeholder="Your Name" style="max-width: 400px;" required>
-                </div>
-                
-                <button id="start-quiz" class="btn btn-primary btn-lg" disabled>
-                    <i class="fas fa-play"></i> Start Quiz
-                </button>
-                <button id="back-to-difficulty" class="btn btn-outline-secondary btn-lg ms-2">
-                    <i class="fas fa-arrow-left"></i> Back
-                </button>
-            </div>
-        </div>
-
-        <div id="quiz-questions" style="display: none;">
-            <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span id="user-display" class="badge bg-primary fs-6"></span>
-                    <span id="difficulty-display" class="badge bg-info fs-6"></span>
-                </div>
-            </div>
-            
-            <div class="progress mb-4">
-                <div id="quiz-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
-            </div>
-            
-            <div id="question-container"></div>
-
-            <div class="d-flex justify-content-between mt-4">
-                <button id="prev-btn" class="btn btn-outline-secondary" style="display: none;">
-                    <i class="fas fa-arrow-left"></i> Previous
-                </button>
-                <button id="next-btn" class="btn btn-primary" style="display: none;">
-                    Next <i class="fas fa-arrow-right"></i>
-                </button>
-                <button id="submit-btn" class="btn btn-success" style="display: none;">
-                    <i class="fas fa-check"></i> Submit Quiz
-                </button>
-            </div>
-        </div>
-
-        <div id="quiz-results" style="display: none;">
-            <div class="results-card text-center">
-                <div id="score-display"></div>
-                <div id="results-details" class="mt-4"></div>
-                <button id="retake-quiz" class="btn btn-primary btn-lg mt-4">
-                    <i class="fas fa-redo"></i> Retake Quiz
-                </button>
-                <a href="/awareness" class="btn btn-outline-primary btn-lg mt-4 ms-2">
-                    <i class="fas fa-lightbulb"></i> Learn More
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+{% block title %}Scam Awareness Quiz — ScamGuard{% endblock %}
 
 {% block extra_css %}
 <style>
+:root {
+  --teal:   #06d6a0;
+  --amber:  #f59e0b;
+  --rose:   #fb4f4f;
+  --purple: #a78bfa;
+  --navy:   #080d1a;
+  --navy-2: #0e1628;
+  --navy-3: #141e35;
+  --border: rgba(255,255,255,0.07);
+  --muted:  #7a8aaa;
+  --font-h: 'Outfit', sans-serif;
+  --font-b: 'DM Sans', sans-serif;
+  --font-m: 'DM Mono', monospace;
+}
+
+/* ── Header ───────────────────────────────────────── */
+.qz-header {
+  background: linear-gradient(135deg, #0a1628 0%, #111d38 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 0 36px;
+}
+.qz-header h1 {
+  font-family: var(--font-h); font-weight: 800;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  letter-spacing: -0.03em; color: #fff; margin-bottom: 6px;
+}
+.qz-header .lead { color: var(--muted); font-size: 0.95rem; font-weight: 300; margin: 0; }
+
+.qz-wrap { max-width: 720px; margin: 0 auto; padding: 40px 20px 60px; }
+
+/* ── Setup screen ─────────────────────────────────── */
+.qz-intro {
+  background: var(--navy-2); border: 1px solid var(--border);
+  border-radius: 18px; padding: 40px 36px; text-align: center;
+}
+.qz-intro-icon {
+  width: 72px; height: 72px;
+  background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.25);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 28px; color: var(--purple); margin: 0 auto 20px;
+}
+.qz-intro h2 { font-family: var(--font-h); font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.qz-intro > p { font-size: 0.9rem; color: var(--muted); margin-bottom: 28px; }
+
+.difficulty-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 4px; }
 .difficulty-card {
-    background: white;
-    border: 3px solid #dee2e6;
-    border-radius: 15px;
-    padding: 30px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    height: 100%;
+  background: var(--navy-3); border: 2px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 24px 16px; cursor: pointer;
+  transition: all 0.2s; text-align: center;
+}
+.difficulty-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.15); }
+.diff-icon { font-size: 28px; margin-bottom: 12px; }
+.difficulty-card h5 { font-family: var(--font-h); font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.difficulty-card .diff-count { font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; }
+.difficulty-card .diff-desc  { font-size: 0.75rem; color: rgba(122,138,170,0.65); }
+
+.difficulty-card[data-difficulty="easy"].selected    { border-color: var(--teal);   background: rgba(6,214,160,0.08); }
+.difficulty-card[data-difficulty="medium"].selected  { border-color: var(--amber);  background: rgba(245,158,11,0.08); }
+.difficulty-card[data-difficulty="difficult"].selected{ border-color: var(--rose);  background: rgba(251,79,79,0.08); }
+
+/* ── Name input ──────────────────────────────────── */
+#name-input-section { display: none; }
+.qz-name-card {
+  background: var(--navy-2); border: 1px solid var(--border);
+  border-radius: 18px; padding: 40px 36px; text-align: center;
+}
+.qz-name-card h3 { font-family: var(--font-h); font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.qz-name-card p  { font-size: 0.875rem; color: var(--muted); margin-bottom: 24px; }
+
+.qz-input {
+  width: 100%; max-width: 360px;
+  background: var(--navy-3); border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px; color: #e8edf8;
+  font-family: var(--font-b); font-size: 1rem; text-align: center;
+  padding: 13px 16px; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin: 0 auto 20px; display: block;
+}
+.qz-input:focus { border-color: rgba(6,214,160,0.35); box-shadow: 0 0 0 3px rgba(6,214,160,0.08); }
+.qz-input::placeholder { color: rgba(122,138,170,0.4); }
+
+.qz-btn-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+
+.btn-qz-start {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--teal); color: #061210;
+  font-family: var(--font-b); font-weight: 600; font-size: 0.9rem;
+  padding: 12px 28px; border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+}
+.btn-qz-start:hover:not(:disabled) { background: #04a87e; transform: translateY(-1px); }
+.btn-qz-start:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-qz-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--muted);
+  font-family: var(--font-b); font-weight: 500; font-size: 0.875rem;
+  padding: 12px 20px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s;
+}
+.btn-qz-back:hover { color: #e8edf8; border-color: rgba(255,255,255,0.15); }
+
+/* ── Quiz questions ──────────────────────────────── */
+#quiz-questions { display: none; }
+
+.qz-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 8px; flex-wrap: wrap; }
+.badge-user {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.2);
+  color: var(--purple); padding: 5px 12px; border-radius: 100px; font-size: 0.78rem; font-weight: 500;
+}
+.badge-diff {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 100px; font-size: 0.78rem; font-weight: 500;
+}
+.badge-diff.easy      { background: rgba(6,214,160,0.1);  border: 1px solid rgba(6,214,160,0.2);  color: var(--teal); }
+.badge-diff.medium    { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: var(--amber); }
+.badge-diff.difficult { background: rgba(251,79,79,0.1);  border: 1px solid rgba(251,79,79,0.2);  color: var(--rose); }
+
+.qz-counter {
+  font-family: var(--font-m); font-size: 0.78rem; color: var(--muted);
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  padding: 5px 12px; border-radius: 100px;
 }
 
-.difficulty-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+.qz-progress-wrap {
+  background: rgba(255,255,255,0.06); border-radius: 100px; height: 6px; overflow: hidden; margin-bottom: 24px;
+}
+#quiz-progress {
+  height: 100%; background: linear-gradient(90deg, var(--teal), #04c4a0);
+  border-radius: 100px; transition: width 0.4s ease;
 }
 
-.difficulty-card.selected {
-    border-color: #0d6efd;
-    background: #e7f1ff;
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(13,110,253,0.3);
+/* Question card */
+#question-container .question-card {
+  background: var(--navy-2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 28px;
+}
+.question-num {
+  font-size: 0.75rem; font-weight: 500; color: var(--teal);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+}
+.question-text {
+  font-family: var(--font-h); font-size: 1.05rem; font-weight: 600;
+  color: #fff; line-height: 1.5; margin-bottom: 20px;
+}
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+.option-item { position: relative; }
+.option-item input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.option-item label {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--navy-3); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 13px 16px; cursor: pointer;
+  font-size: 0.875rem; color: #c0c8d8; transition: all 0.18s; line-height: 1.4;
+}
+.option-item label:hover { border-color: rgba(255,255,255,0.18); color: #e8edf8; background: rgba(255,255,255,0.04); }
+.option-item.selected label { border-color: rgba(6,214,160,0.4); background: rgba(6,214,160,0.08); color: var(--teal); }
+.opt-letter {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; color: var(--muted);
+  flex-shrink: 0; transition: all 0.18s;
+}
+.option-item.selected .opt-letter { background: rgba(6,214,160,0.15); border-color: rgba(6,214,160,0.3); color: var(--teal); }
+
+/* Nav */
+.qz-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+.btn-qz-prev {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--muted); border: 1px solid var(--border);
+  font-family: var(--font-b); font-weight: 600; font-size: 0.875rem;
+  padding: 11px 22px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+}
+.btn-qz-prev:hover { color: #e8edf8; border-color: rgba(255,255,255,0.15); }
+.btn-qz-next {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--teal); color: #061210; border: none;
+  font-family: var(--font-b); font-weight: 600; font-size: 0.875rem;
+  padding: 11px 22px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+}
+.btn-qz-next:hover { background: #04a87e; transform: translateY(-1px); }
+.btn-qz-submit {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--purple); color: #fff; border: none;
+  font-family: var(--font-b); font-weight: 600; font-size: 0.875rem;
+  padding: 11px 22px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+}
+.btn-qz-submit:hover { background: #8b70fa; transform: translateY(-1px); }
+
+/* ── Results ─────────────────────────────────────── */
+#quiz-results { display: none; }
+
+.qz-results-card {
+  background: var(--navy-2); border: 1px solid var(--border);
+  border-radius: 18px; overflow: hidden;
 }
 
-.difficulty-card[data-difficulty="easy"].selected {
-    border-color: #198754;
-    background: #d1e7dd;
+/* Score hero */
+.qz-score-hero {
+  background: linear-gradient(135deg, #0d1f3c 0%, #0e1628 100%);
+  padding: 48px 36px 36px; text-align: center; border-bottom: 1px solid var(--border);
 }
-
-.difficulty-card[data-difficulty="medium"].selected {
-    border-color: #ffc107;
-    background: #fff3cd;
+.qz-score-ring {
+  width: 110px; height: 110px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin: 0 auto 20px; border: 3px solid;
+  font-family: var(--font-h);
 }
+.qz-score-ring .ring-num { font-size: 2rem; font-weight: 800; line-height: 1; }
+.qz-score-ring .ring-total { font-size: 0.75rem; font-weight: 400; opacity: 0.7; }
+.qz-score-ring.great  { border-color: var(--teal);  color: var(--teal);  background: rgba(6,214,160,0.07); }
+.qz-score-ring.mid    { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.07); }
+.qz-score-ring.low    { border-color: var(--rose);  color: var(--rose);  background: rgba(251,79,79,0.07); }
 
-.difficulty-card[data-difficulty="difficult"].selected {
-    border-color: #dc3545;
-    background: #f8d7da;
+.qz-result-title { font-family: var(--font-h); font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.qz-result-sub   { font-size: 0.875rem; color: var(--muted); margin-bottom: 20px; }
+
+.qz-stat-row {
+  display: flex; justify-content: center; gap: 28px; flex-wrap: wrap;
+}
+.qz-stat {
+  text-align: center;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 20px; min-width: 90px;
+}
+.qz-stat .stat-val { font-family: var(--font-h); font-size: 1.3rem; font-weight: 700; line-height: 1; }
+.qz-stat .stat-lbl { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+.qz-stat.correct .stat-val { color: var(--teal); }
+.qz-stat.wrong   .stat-val { color: var(--rose); }
+.qz-stat.pct     .stat-val { color: #fff; }
+
+/* Results details */
+.qz-details-wrap { padding: 28px; }
+.qz-details-label {
+  font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.qz-details-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.result-item {
+  background: var(--navy-3); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 20px; margin-bottom: 12px;
+}
+.result-item.correct  { border-left: 3px solid var(--teal); }
+.result-item.incorrect{ border-left: 3px solid var(--rose); }
+.result-item h5 { font-family: var(--font-h); font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.result-item p  { font-size: 0.83rem; color: #c0c8d8; margin-bottom: 4px; }
+.result-item .text-success { color: var(--teal) !important; }
+.result-item .text-danger  { color: var(--rose) !important; }
+.result-item .text-muted   { color: var(--muted) !important; }
+.result-item strong { color: #e8edf8; }
+
+.ri-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.72rem; font-weight: 600;
+  padding: 3px 9px; border-radius: 100px; margin-bottom: 8px;
+}
+.ri-status.correct  { background: rgba(6,214,160,0.1);  color: var(--teal);  border: 1px solid rgba(6,214,160,0.2); }
+.ri-status.incorrect{ background: rgba(251,79,79,0.08);  color: var(--rose);  border: 1px solid rgba(251,79,79,0.2); }
+
+/* Footer */
+.qz-results-footer {
+  display: flex; justify-content: center; gap: 12px;
+  padding: 20px 28px 28px; border-top: 1px solid var(--border); flex-wrap: wrap;
+}
+.btn-retake {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--teal); color: #061210;
+  font-family: var(--font-b); font-weight: 600; font-size: 0.875rem;
+  padding: 11px 24px; border: none; border-radius: 10px; cursor: pointer;
+  text-decoration: none; transition: all 0.2s;
+}
+.btn-retake:hover { background: #04a87e; color: #061210; }
+.btn-learn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--muted);
+  font-family: var(--font-b); font-weight: 500; font-size: 0.875rem;
+  padding: 11px 22px; border: 1px solid var(--border); border-radius: 10px;
+  text-decoration: none; transition: all 0.2s;
+}
+.btn-learn:hover { color: #e8edf8; border-color: rgba(255,255,255,0.15); }
+
+@media (max-width: 576px) {
+  .difficulty-grid { grid-template-columns: 1fr; }
+  .qz-intro, .qz-name-card { padding: 28px 20px; }
+  .qz-score-hero { padding: 32px 20px 24px; }
 }
 </style>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-let questions = [];
-let currentQuestion = 0;
-let userAnswers = [];
-let selectedDifficulty = '';
-let userName = '';
+{% block content %}
+<div class="qz-header">
+  <div class="container">
+    <h1><i class="fas fa-brain" style="color:var(--purple);margin-right:10px;font-size:1.5rem;"></i>Scam Awareness Quiz</h1>
+    <p class="lead">Test your knowledge across 3 difficulty levels — 20 questions each</p>
+  </div>
+</div>
 
-// Setup event listeners
-document.getElementById('user-name').addEventListener('input', checkNameInput);
-document.querySelectorAll('.difficulty-card').forEach(card => {
-    card.addEventListener('click', function() {
-        document.querySelectorAll('.difficulty-card').forEach(c => c.classList.remove('selected'));
-        this.classList.add('selected');
-        selectedDifficulty = this.dataset.difficulty;
-        // Show name input section after difficulty selection
-        document.getElementById('quiz-setup').style.display = 'none';
-        document.getElementById('name-input-section').style.display = 'block';
-    });
-});
+<div class="qz-wrap">
+<div id="quiz-container">
 
-document.getElementById('back-to-difficulty').addEventListener('click', function() {
-    document.getElementById('name-input-section').style.display = 'none';
-    document.getElementById('quiz-setup').style.display = 'block';
-    document.getElementById('user-name').value = '';
-    document.getElementById('start-quiz').disabled = true;
-});
-
-document.getElementById('start-quiz').addEventListener('click', startQuiz);
-document.getElementById('next-btn').addEventListener('click', nextQuestion);
-document.getElementById('prev-btn').addEventListener('click', prevQuestion);
-document.getElementById('submit-btn').addEventListener('click', submitQuiz);
-document.getElementById('retake-quiz').addEventListener('click', () => location.reload());
-
-function checkNameInput() {
-    const nameInput = document.getElementById('user-name').value.trim();
-    const startBtn = document.getElementById('start-quiz');
-    
-    if (nameInput) {
-        startBtn.disabled = false;
-    } else {
-        startBtn.disabled = true;
-    }
-}
-
-async function startQuiz() {
-    userName = document.getElementById('user-name').value.trim();
-    
-    if (!userName || !selectedDifficulty) {
-        alert('Please enter your name!');
-        return;
-    }
-    
-    const response = await fetch(`/api/quiz/questions?difficulty=${selectedDifficulty}`);
-    questions = await response.json();
-    userAnswers = new Array(questions.length).fill(null);
-    
-    document.getElementById('name-input-section').style.display = 'none';
-    document.getElementById('quiz-questions').style.display = 'block';
-    
-    document.getElementById('user-display').textContent = `👤 ${userName}`;
-    document.getElementById('difficulty-display').textContent = `📊 ${selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1)}`;
-    
-    showQuestion(0);
-}
-
-function showQuestion(index) {
-    currentQuestion = index;
-    const question = questions[index];
-    
-    const progress = ((index + 1) / questions.length) * 100;
-    document.getElementById('quiz-progress').style.width = progress + '%';
-    document.getElementById('quiz-progress').textContent = `Question ${index + 1} of ${questions.length}`;
-    
-    const container = document.getElementById('question-container');
-    container.innerHTML = `
-        <div class="question-card">
-            <h4 class="mb-4">Question ${index + 1}</h4>
-            <p class="lead mb-4">${question.question}</p>
-            <div class="options-container">
-                ${question.options.map((option, i) => `
-                    <label class="option-item ${userAnswers[index] === i ? 'selected' : ''}" for="q${index}o${i}">
-                        <input class="form-check-input" type="radio" name="question${index}" 
-                               id="q${index}o${i}" value="${i}" 
-                               ${userAnswers[index] === i ? 'checked' : ''}>
-                        <span class="option-text">${option}</span>
-                    </label>
-                `).join('')}
-            </div>
+  <!-- ── SETUP: Difficulty ── -->
+  <div id="quiz-setup">
+    <div class="qz-intro">
+      <div class="qz-intro-icon"><i class="fas fa-brain"></i></div>
+      <h2>Ready to Test Your Knowledge?</h2>
+      <p>Choose your difficulty level to get started</p>
+      <div class="difficulty-grid">
+        <div class="difficulty-card" data-difficulty="easy">
+          <div class="diff-icon" style="color:var(--teal);">😊</div>
+          <h5>Easy</h5>
+          <div class="diff-count">20 Questions</div>
+          <div class="diff-desc">Perfect for beginners</div>
         </div>
-    `;
-    
-    // Add click handlers to entire label
-    document.querySelectorAll('.option-item').forEach((label, i) => {
-        label.addEventListener('click', function(e) {
-            // If clicking on the label (not the input), trigger the input
-            if (e.target.tagName !== 'INPUT') {
-                const input = this.querySelector('input');
-                input.checked = true;
-                input.dispatchEvent(new Event('change'));
-            }
-        });
+        <div class="difficulty-card" data-difficulty="medium">
+          <div class="diff-icon" style="color:var(--amber);">😤</div>
+          <h5>Medium</h5>
+          <div class="diff-count">20 Questions</div>
+          <div class="diff-desc">Test your knowledge</div>
+        </div>
+        <div class="difficulty-card" data-difficulty="difficult">
+          <div class="diff-icon" style="color:var(--rose);">💀</div>
+          <h5>Difficult</h5>
+          <div class="diff-count">20 Questions</div>
+          <div class="diff-desc">For experts only</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SETUP: Name input ── -->
+  <div id="name-input-section">
+    <div class="qz-name-card">
+      <div class="qz-intro-icon" style="background:rgba(6,214,160,0.1);border-color:rgba(6,214,160,0.25);color:var(--teal);">
+        <i class="fas fa-user"></i>
+      </div>
+      <h3>What's your name?</h3>
+      <p>We'll personalise your quiz experience and results</p>
+      <input type="text" class="qz-input" id="user-name" placeholder="Enter your name…" maxlength="40">
+      <div class="qz-btn-row">
+        <button class="btn-qz-back" id="back-to-difficulty">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <button class="btn-qz-start" id="start-quiz" disabled>
+          <i class="fas fa-play"></i> Start Quiz
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── QUIZ QUESTIONS ── -->
+  <div id="quiz-questions">
+    <div class="qz-meta">
+      <span class="badge-user" id="user-display"></span>
+      <span class="qz-counter" id="question-counter">1 / 20</span>
+      <span class="badge-diff" id="difficulty-display"></span>
+    </div>
+    <div class="qz-progress-wrap">
+      <div id="quiz-progress" class="progress-bar" role="progressbar" style="width:0%"></div>
+    </div>
+    <div id="question-container"></div>
+    <div class="qz-nav">
+      <button id="prev-btn" class="btn-qz-prev" style="display:none;">
+        <i class="fas fa-arrow-left"></i> Previous
+      </button>
+      <div></div>
+      <button id="next-btn" class="btn-qz-next" style="display:none;">
+        Next <i class="fas fa-arrow-right"></i>
+      </button>
+      <button id="submit-btn" class="btn-qz-submit" style="display:none;">
+        <i class="fas fa-check"></i> Submit Quiz
+      </button>
+    </div>
+  </div>
+
+  <!-- ── RESULTS ── -->
+  <div id="quiz-results">
+    <div class="qz-results-card">
+      <div class="qz-score-hero">
+        <div id="score-display"></div>
+      </div>
+      <div class="qz-details-wrap">
+        <div class="qz-details-label">Question Review</div>
+        <div id="results-details"></div>
+      </div>
+      <div class="qz-results-footer">
+        <button id="retake-quiz" class="btn-retake">
+          <i class="fas fa-redo"></i> Retake Quiz
+        </button>
+        <a href="/awareness" class="btn-learn">
+          <i class="fas fa-lightbulb"></i> Learn More
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  /* Patch difficulty badge class */
+  const diffEl = document.getElementById('difficulty-display');
+  if (diffEl) {
+    const observer = new MutationObserver(() => {
+      const txt = diffEl.textContent.toLowerCase();
+      diffEl.className = 'badge-diff ' + (txt.includes('easy') ? 'easy' : txt.includes('medium') ? 'medium' : 'difficult');
     });
-    
-    document.querySelectorAll(`input[name="question${index}"]`).forEach(input => {
-        input.addEventListener('change', (e) => {
-            userAnswers[index] = parseInt(e.target.value);
-            document.querySelectorAll('.option-item').forEach(item => item.classList.remove('selected'));
-            e.target.closest('.option-item').classList.add('selected');
-            updateButtons();
-        });
+    observer.observe(diffEl, { childList: true, characterData: true, subtree: true });
+  }
+
+  /* Live question counter */
+  const qContainer = document.getElementById('question-container');
+  const counter    = document.getElementById('question-counter');
+  if (qContainer && counter) {
+    const obs = new MutationObserver(() => {
+      const numEl = qContainer.querySelector('.question-num');
+      if (numEl) {
+        const match = numEl.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+        if (match) counter.textContent = match[0];
+      }
     });
-    
-    updateButtons();
-}
+    obs.observe(qContainer, { childList: true, subtree: true });
+  }
 
-function updateButtons() {
-    document.getElementById('prev-btn').style.display = currentQuestion > 0 ? 'block' : 'none';
-    document.getElementById('next-btn').style.display = 
-        currentQuestion < questions.length - 1 && userAnswers[currentQuestion] !== null ? 'block' : 'none';
-    document.getElementById('submit-btn').style.display = 
-        currentQuestion === questions.length - 1 && userAnswers.every(a => a !== null) ? 'block' : 'none';
-}
+  /* Enhance score-display with ring and stat row */
+  const scoreEl = document.getElementById('score-display');
+  if (scoreEl) {
+    const sObs = new MutationObserver(() => {
+      if (scoreEl.children.length && !scoreEl.querySelector('.qz-score-ring')) {
+        const h2 = scoreEl.querySelector('h2');
+        if (!h2) return;
+        const text  = h2.textContent;
+        const numM  = text.match(/(\d+)\s*\/\s*(\d+)/);
+        const pctM  = text.match(/(\d+)%/);
+        if (!numM && !pctM) return;
+        const correct = numM ? parseInt(numM[1]) : 0;
+        const total   = numM ? parseInt(numM[2]) : 20;
+        const pct     = pctM ? parseInt(pctM[1]) : Math.round(correct/total*100);
+        const cls     = pct >= 75 ? 'great' : pct >= 50 ? 'mid' : 'low';
 
-function nextQuestion() {
-    if (currentQuestion < questions.length - 1) {
-        showQuestion(currentQuestion + 1);
-    }
-}
+        const ring = document.createElement('div');
+        ring.className = 'qz-score-ring ' + cls;
+        ring.innerHTML = '<span class="ring-num">' + pct + '%</span><span class="ring-total">' + correct + '/' + total + '</span>';
+        h2.parentNode.insertBefore(ring, h2);
+        h2.style.display = 'none';
 
-function prevQuestion() {
-    if (currentQuestion > 0) {
-        showQuestion(currentQuestion - 1);
-    }
-}
-
-async function submitQuiz() {
-    const response = await fetch('/api/quiz/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            answers: userAnswers,
-            difficulty: selectedDifficulty,
-            name: userName
-        })
+        /* Add stat row if not present */
+        if (!scoreEl.querySelector('.qz-stat-row')) {
+          const row = document.createElement('div');
+          row.className = 'qz-stat-row';
+          row.innerHTML =
+            '<div class="qz-stat correct"><div class="stat-val">' + correct + '</div><div class="stat-lbl">Correct</div></div>' +
+            '<div class="qz-stat wrong"><div class="stat-val">' + (total - correct) + '</div><div class="stat-lbl">Wrong</div></div>' +
+            '<div class="qz-stat pct"><div class="stat-val">' + pct + '%</div><div class="stat-lbl">Score</div></div>';
+          scoreEl.appendChild(row);
+        }
+      }
     });
-    
-    const results = await response.json();
-    showResults(results);
-}
-
-function showResults(results) {
-    document.getElementById('quiz-questions').style.display = 'none';
-    document.getElementById('quiz-results').style.display = 'block';
-    
-    let scoreClass = 'text-success';
-    let message = 'Excellent! You\'re well-prepared!';
-    let emoji = '🎉';
-    
-    if (results.percentage < 50) {
-        scoreClass = 'text-danger';
-        message = 'Keep learning! Review the awareness section.';
-        emoji = '📚';
-    } else if (results.percentage < 70) {
-        scoreClass = 'text-warning';
-        message = 'Good effort! A bit more practice will help.';
-        emoji = '💪';
-    } else if (results.percentage < 90) {
-        scoreClass = 'text-info';
-        message = 'Great job! You know your stuff!';
-        emoji = '⭐';
-    }
-    
-    const difficultyBadge = `<span class="badge bg-secondary fs-6">${results.difficulty.charAt(0).toUpperCase() + results.difficulty.slice(1)}</span>`;
-    
-    document.getElementById('score-display').innerHTML = `
-        <h2 class="mb-3">${emoji} ${results.name}'s Results ${emoji}</h2>
-        <div class="mb-3">${difficultyBadge}</div>
-        <h2 class="${scoreClass}">Score: ${results.score}/${results.total}</h2>
-        <h3 class="${scoreClass}">${results.percentage.toFixed(0)}%</h3>
-        <p class="lead">${message}</p>
-    `;
-    
-    let detailsHTML = '<div class="text-start">';
-    results.results.forEach((result, i) => {
-        const icon = result.correct ? 
-            '<i class="fas fa-check-circle text-success"></i>' : 
-            '<i class="fas fa-times-circle text-danger"></i>';
-        
-        detailsHTML += `
-            <div class="result-item ${result.correct ? 'correct' : 'incorrect'}">
-                <h5>${icon} Question ${i + 1}</h5>
-                <p class="mb-1"><strong>${questions[i].question}</strong></p>
-                <p class="mb-1">Your answer: ${questions[i].options[userAnswers[i]]}</p>
-                ${!result.correct ? `<p class="mb-1 text-success">Correct answer: ${questions[i].options[questions[i].correct]}</p>` : ''}
-                <p class="small text-muted"><i class="fas fa-info-circle"></i> ${result.explanation}</p>
-            </div>
-        `;
-    });
-    detailsHTML += '</div>';
-    
-    document.getElementById('results-details').innerHTML = detailsHTML;
-}
+    sObs.observe(scoreEl, { childList: true, subtree: true });
+  }
+});
 </script>
 {% endblock %}
