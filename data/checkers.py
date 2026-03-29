@@ -5,21 +5,18 @@ import time
 from urllib.parse import unquote, urlsplit
 from dotenv import load_dotenv
 
+# Force the import - if this fails, Render will show us the REAL error in the logs
+from google import genai
+from google.genai import types
+
 load_dotenv()
 
-try:
-    from google import genai
-    from google.genai import types
-    GEMINI_AVAILABLE = True
-except ImportError:
-    GEMINI_AVAILABLE = False
-    print("Warning: google-genai package not installed.")
-
+# We set this to True because the import above didn't crash the app
+GEMINI_AVAILABLE = True
 
 # ---------------------------------------------------------------------------
 # Truncated JSON recovery
-# Handles the case where gemini-2.5-flash cuts off mid-response due to
-# free-tier rate limiting (response has no closing } or ])
+# Handles the case where gemini-2.5-flash cuts off mid-response
 # ---------------------------------------------------------------------------
 
 def _recover_truncated_json(text: str) -> dict:
