@@ -1,6 +1,7 @@
 """Public API endpoints."""
 import os
 import json
+import tempfile
 from urllib.parse import urlsplit
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify, make_response
@@ -51,8 +52,13 @@ def _to_pkt(ts):
             continue
     return ts  # Return as-is if all parsing fails
 
-# Absolute path to the reports directory (works regardless of cwd)
-_REPORTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'reports')
+# ---------------------------------------------------------------------------
+# FIX: Use /tmp for file writes on Vercel (read-only filesystem).
+# On localhost this still works because /tmp is always writable.
+# The original code used a 'reports/' subdirectory in the project root,
+# which is READ-ONLY on Vercel serverless — causing silent failures.
+# ---------------------------------------------------------------------------
+_REPORTS_DIR = os.path.join(tempfile.gettempdir(), 'scamguard_reports')
 
 # Maximum content length accepted for AI analysis (characters)
 _MAX_AI_INPUT_LEN = 10_000
@@ -146,16 +152,16 @@ def save_report_to_supabase(report):
 
 
 def save_report_to_file(report):
-    """Save report to local file as backup."""
+    """Save report to /tmp as backup (Vercel-compatible, no read-only filesystem error)."""
     try:
         os.makedirs(_REPORTS_DIR, exist_ok=True)
-        # FIX: Use PKT time for file naming so filenames match local time
+        # Use PKT time for file naming so filenames match local time
         timestamp = datetime.now(_PKT).strftime('%Y%m%d_%H%M%S')
         filename = os.path.join(_REPORTS_DIR, f"scam_report_{timestamp}.txt")
         with open(filename, 'w', encoding='utf-8') as f:
             for key, value in report.items():
                 f.write(f"{key}: {value}\n")
-        print(f"[+] Report saved locally: {filename}")
+        print(f"[+] Report saved to /tmp: {filename}")
         return True
     except Exception as e:
         print(f"[!] Local file save failed: {e}")
@@ -193,7 +199,7 @@ def get_quiz_questions():
 @api.route('/api/quiz/submit', methods=['POST'])
 def submit_quiz():
     supabase_client = ext.supabase_client
-    # FIX: use get_json(force=True) + fallback to {} to prevent None crash
+    # use get_json(force=True) + fallback to {} to prevent None crash
     data = request.get_json(force=True, silent=True) or {}
     answers = data.get('answers', [])
     difficulty = data.get('difficulty', 'easy')
@@ -379,11 +385,30 @@ def get_practice_questions(scam_type):
 
 @api.route('/api/check', methods=['POST'])
 def check_scam():
+    """POST /api/check — analyze a message, email, or URL for scam indicators."""
     data = request.get_json(force=True, silent=True) or {}
     check_type = data.get('type')
-    content = data.get('content', '')
+    content = data.get('content', '').strip()
 
-    # ... (keep your existing length and type checks) ...
+    # ---------- Input validation (was a stub comment in original) ----------
+    if not content:
+        return jsonify({
+            'error': 'No content provided',
+            'ai_powered': False
+        }), 400
+
+    if check_type not in ('message', 'email', 'url', None):
+        return jsonify({
+            'error': f'Unknown check type: {check_type}',
+            'ai_powered': False
+        }), 400
+
+    if len(content) > _MAX_AI_INPUT_LEN:
+        return jsonify({
+            'error': f'Content too long. Maximum {_MAX_AI_INPUT_LEN} characters.',
+            'ai_powered': False
+        }), 413
+    # -----------------------------------------------------------------------
 
     try:
         if check_type == 'url':
@@ -410,11 +435,10 @@ def check_scam():
         return jsonify(result)
 
     except Exception as e:
-        # This catches the "Unterminated string" error and prevents the 503 crash
         print(f"AI analysis failed: {str(e)}")
         return jsonify({
             'error': 'AI analysis failed',
-            'details': "The AI response was cut off or malformed.",
+            'details': "The AI response was cut off or malformed. Please try again.",
             'ai_powered': False
         }), 503
 
@@ -503,7 +527,7 @@ def get_stats():
             if scam_types:
                 stats['top_scam_type'] = max(set(scam_types), key=scam_types.count).replace('_', ' ').title()
 
-            # FIX: Use UTC-aware datetime to match ISO timestamps stored in Supabase
+            # Use UTC-aware datetime to match ISO timestamps stored in Supabase
             current_month = datetime.now(timezone.utc).strftime('%Y-%m')
             stats['reports_this_month'] = sum(1 for r in reports
                                               if r.get('submitted_at', '').startswith(current_month))
@@ -624,7 +648,7 @@ def verify_contact():
 
 @api.route('/api/report', methods=['POST'])
 def submit_report():
-    # FIX: get_json with silent=True prevents AttributeError when body is missing
+    # get_json with silent=True prevents AttributeError when body is missing
     data = request.get_json(force=True, silent=True) or {}
 
     report = {
@@ -636,8 +660,8 @@ def submit_report():
         'lost_money': data.get('lost_money', 'No'),
         'amount': data.get('amount', 'N/A'),
         'reporter_email': data.get('reporter_email', 'Anonymous'),
-        # FIX: Store as UTC ISO string so Supabase treats it as a proper
-        # timestamp. _to_pkt() in admin_routes.py converts it to PKT on display.
+        # Store as UTC ISO string so Supabase treats it as a proper timestamp.
+        # _to_pkt() in admin_routes.py converts it to PKT on display.
         'submitted_at': datetime.now(timezone.utc).isoformat()
     }
 

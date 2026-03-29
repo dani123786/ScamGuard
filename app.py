@@ -31,6 +31,29 @@ if not _secret:
 app.secret_key = _secret
 
 # ---------------------------------------------------------------------------
+# FIX: Production session cookie settings for Vercel (HTTPS)
+# Without these, admin sessions won't persist correctly on Vercel because:
+#   - SESSION_COOKIE_SECURE=True ensures cookies are sent only over HTTPS
+#   - SESSION_COOKIE_HTTPONLY=True prevents JS from reading the cookie (security)
+#   - SESSION_COOKIE_SAMESITE='Lax' prevents CSRF while allowing normal navigation
+# ---------------------------------------------------------------------------
+_is_production = (
+    os.environ.get('FLASK_ENV') == 'production' or
+    os.environ.get('VERCEL') == '1' or
+    os.environ.get('VERCEL_ENV') in ('production', 'preview')
+)
+
+if _is_production:
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    print("[+] Production session cookie settings applied (Secure, HttpOnly, SameSite=Lax)")
+else:
+    # Localhost — don't force HTTPS for cookies
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+# ---------------------------------------------------------------------------
 # Rate limiter (must be init'd before blueprints are registered)
 # ---------------------------------------------------------------------------
 try:
