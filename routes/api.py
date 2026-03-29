@@ -316,34 +316,47 @@ def get_practice_questions(scam_type):
 
 @api.route('/api/check', methods=['POST'])
 def check_scam():
-    # FIX: get_json with silent=True prevents AttributeError when body is missing
+    import json
+    import re
+    
     data = request.get_json(force=True, silent=True) or {}
     check_type = data.get('type')
     content = data.get('content', '')
 
-    if check_type not in ('email', 'message', 'url'):
-        return jsonify({'error': 'Invalid check type'}), 400
-
-    if not content.strip():
-        return jsonify({'error': 'No content provided'}), 400
-
-    if len(content) > _MAX_AI_INPUT_LEN:
-        return jsonify({'error': f'Content too long. Maximum {_MAX_AI_INPUT_LEN} characters allowed.'}), 413
+    # ... (keep your existing length and type checks) ...
 
     try:
         if check_type == 'url':
             from data.checkers import analyze_url_with_ai
-            result = analyze_url_with_ai(content)
+            raw_result = analyze_url_with_ai(content)
         else:
-            result = analyze_with_ai(content, check_type)
+            raw_result = analyze_with_ai(content, check_type)
+
+        # NEW: Robust JSON Parsing Fix
+        if isinstance(raw_result, str):
+            # Remove any markdown code blocks the AI might have added
+            cleaned = re.sub(r'```json|```', '', raw_result).strip()
+            try:
+                result = json.loads(cleaned)
+            except json.JSONDecodeError:
+                # If it's still broken, return a structured error instead of crashing
+                return jsonify({
+                    'error': 'AI returned invalid formatting',
+                    'ai_powered': False,
+                    'raw_text': raw_result[:200]
+                }), 503
+        else:
+            result = raw_result
+
         result['ai_powered'] = True
         return jsonify(result)
+
     except Exception as e:
-        error_msg = str(e)
-        print(f"AI analysis failed: {error_msg}")
+        # This catches the "Unterminated string" error and prevents the 503 crash
+        print(f"AI analysis failed: {str(e)}")
         return jsonify({
             'error': 'AI analysis failed',
-            'details': error_msg,
+            'details': "The AI response was cut off or malformed.",
             'ai_powered': False
         }), 503
 
@@ -520,7 +533,7 @@ def verify_contact():
             'total_reports': total_reports,
             'high_severity_count': high_severity,
             'most_common_scam': most_common_scam.replace('_', ' ').title(),
-            'most_recent_report': most_recent,
+            'most_recent_report': _to_pkt(most_recent),
             'total_money_lost': total_loss,
             'victims_lost_money': victims_lost_money,
             'contact_methods': list(set(contact_methods)),

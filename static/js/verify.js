@@ -106,7 +106,15 @@ function escapeHtml(text) {
 
 function formatDate(dateString) {
     if (!dateString || dateString === 'Unknown') return 'Unknown';
+    // Already formatted by server (e.g. "28 Mar 2026, 11:14 PM PKT") — return as-is
+    if (typeof dateString === 'string' && dateString.includes('PKT')) return dateString;
     try {
-        return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const d = new Date(dateString);
+        // new Date() never throws — check explicitly for Invalid Date
+        if (isNaN(d.getTime())) return dateString;
+        return d.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
     } catch (e) { return dateString; }
 }
