@@ -38,7 +38,6 @@ _is_production = (
 )
 
 if _is_production:
-    # Production settings (Render handles SSL/HTTPS automatically)
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -48,6 +47,15 @@ else:
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['DEBUG'] = True
     print("[!] Development mode: Debugging active.")
+
+# ---------------------------------------------------------------------------
+# Google GenAI Safety Check
+# ---------------------------------------------------------------------------
+try:
+    from google import genai
+    print("[+] Google GenAI module loaded")
+except ImportError:
+    print("[!] WARNING: google-genai package not installed. Check requirements.txt")
 
 # ---------------------------------------------------------------------------
 # Rate limiter initialization
@@ -83,7 +91,6 @@ except ImportError:
 # Shared objects — Register with routes/extensions.py
 # ---------------------------------------------------------------------------
 import routes.extensions as ext
-
 from services.cache_manager import SimpleCacheManager
 ext._cache_manager = SimpleCacheManager()
 
@@ -156,14 +163,10 @@ app.register_blueprint(analytics)
 # Execution Entry Point (Optimized for Render)
 # ---------------------------------------------------------------------------
 if __name__ == '__main__':
-    # 1. Get port immediately
     port = int(os.environ.get('PORT', 10000))
-    
-    # 2. Print startup message immediately so Render logs capture it
     print(f"--- ScamGuard AI Process Initializing ---")
     print(f"[+] Targeting Port: {port}")
     print(f"[+] Environment: {'Production' if _is_production else 'Development'}")
     
-    # 3. Run the application
-    # host '0.0.0.0' is required for Render to map the port
+    # Run the application
     app.run(host='0.0.0.0', port=port, debug=not _is_production)
