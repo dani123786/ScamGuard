@@ -1,15 +1,12 @@
 """
 ScamGuard AI — Flask application entry point.
-
-Responsibilities:
-  1. Load environment variables
-  2. Create the Flask app
-  3. Initialise all shared objects in routes/extensions.py
-  4. Register all blueprints
+Optimized for Render Deployment.
 """
 import os
 import warnings
 from dotenv import load_dotenv
+
+# Load local .env file if it exists (useful for local testing)
 load_dotenv()
 
 from flask import Flask
@@ -17,44 +14,38 @@ from flask import Flask
 app = Flask(__name__)
 
 # ---------------------------------------------------------------------------
-# Secret key — MUST be set via environment variable in production
+# Secret key — Set 'SECRET_KEY' in Render Dashboard for security
 # ---------------------------------------------------------------------------
 _secret = os.environ.get('SECRET_KEY')
 if not _secret:
     _secret = 'scamguard-default-secret-2026'
     warnings.warn(
-        "[SECURITY] SECRET_KEY is not set in environment variables. "
-        "Using the hardcoded default — this is UNSAFE in production. "
-        "Set SECRET_KEY in your .env or deployment config.",
+        "[SECURITY] SECRET_KEY is not set. Using default — UNSAFE for production.",
         stacklevel=1
     )
 app.secret_key = _secret
 
 # ---------------------------------------------------------------------------
-# FIX: Production session cookie settings for Vercel (HTTPS)
-# Without these, admin sessions won't persist correctly on Vercel because:
-#   - SESSION_COOKIE_SECURE=True ensures cookies are sent only over HTTPS
-#   - SESSION_COOKIE_HTTPONLY=True prevents JS from reading the cookie (security)
-#   - SESSION_COOKIE_SAMESITE='Lax' prevents CSRF while allowing normal navigation
+# Production Check: Detects if running on Render
 # ---------------------------------------------------------------------------
 _is_production = (
     os.environ.get('FLASK_ENV') == 'production' or
-    os.environ.get('VERCEL') == '1' or
-    os.environ.get('VERCEL_ENV') in ('production', 'preview')
+    os.environ.get('RENDER') == 'true'
 )
 
 if _is_production:
+    # Production settings (Render handles SSL/HTTPS automatically)
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    print("[+] Production session cookie settings applied (Secure, HttpOnly, SameSite=Lax)")
+    print("[+] Production mode: Secure session cookies enabled.")
 else:
-    # Localhost — don't force HTTPS for cookies
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    print("[!] Development mode: Debugging active.")
 
 # ---------------------------------------------------------------------------
-# Rate limiter (must be init'd before blueprints are registered)
+# Rate limiter initialization
 # ---------------------------------------------------------------------------
 try:
     from services.rate_limiter import limiter
@@ -64,39 +55,27 @@ except Exception as _rl_err:
     print(f"[!] Rate limiter init failed: {_rl_err}")
 
 # ---------------------------------------------------------------------------
-# Supabase
+# Supabase Connection
 # ---------------------------------------------------------------------------
 supabase_client = None
 try:
     from supabase import create_client
-    supabase_url = (
-        os.environ.get('SUPABASE_URL') or
-        os.environ.get('NEXT_PUBLIC_SUPABASE_URL') or
-        os.environ.get('SUPABASE_PROJECT_URL')
-    )
-    supabase_key = (
-        os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or
-        os.environ.get('SUPABASE_KEY') or
-        os.environ.get('SUPABASE_ANON_KEY')
-    )
+    supabase_url = os.environ.get('SUPABASE_URL') or os.environ.get('NEXT_PUBLIC_SUPABASE_URL')
+    supabase_key = os.environ.get('SUPABASE_KEY') or os.environ.get('SUPABASE_ANON_KEY')
+    
     if supabase_url and supabase_key:
         try:
             supabase_client = create_client(supabase_url, supabase_key)
-            key_name = (
-                'SUPABASE_SERVICE_ROLE_KEY' if os.environ.get('SUPABASE_SERVICE_ROLE_KEY') else
-                'SUPABASE_KEY' if os.environ.get('SUPABASE_KEY') else
-                'SUPABASE_ANON_KEY'
-            )
-            print(f"[+] Supabase connected successfully using {key_name}")
+            print("[+] Supabase connected successfully")
         except Exception as e:
             print(f"[!] Supabase connection failed: {e}")
     else:
-        print("[!] Supabase credentials not found in environment")
+        print("[!] Supabase credentials missing from environment variables")
 except ImportError:
-    print("Warning: Supabase not installed. Reports will save locally only.")
+    print("[!] Warning: Supabase library not found in requirements.txt")
 
 # ---------------------------------------------------------------------------
-# Shared objects — populate routes/extensions.py module-level vars
+# Shared objects — Register with routes/extensions.py
 # ---------------------------------------------------------------------------
 import routes.extensions as ext
 
@@ -107,7 +86,7 @@ try:
     from services.content_service import ContentService
     ext.content_service = ContentService(supabase_client, ext._cache_manager)
     ext.content_service.fallback_enabled = False
-    print("[+] ContentService initialised (database-only mode)")
+    print("[+] ContentService initialised")
 except Exception as _e:
     ext.content_service = None
     print(f"[!] ContentService init failed: {_e}")
@@ -154,7 +133,7 @@ except Exception as _auth_err:
     print(f"[!] Auth module init failed: {_auth_err}")
 
 # ---------------------------------------------------------------------------
-# Register blueprints
+# Register Blueprints
 # ---------------------------------------------------------------------------
 from routes.public import public
 from routes.api import api
@@ -169,9 +148,10 @@ app.register_blueprint(admin_content)
 app.register_blueprint(analytics)
 
 # ---------------------------------------------------------------------------
-# Entry point
+# Execution Entry Point (for local testing)
 # ---------------------------------------------------------------------------
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_ENV') != 'production'
-    app.run(host='0.0.0.0', port=port, debug=debug)
+    # Render sets 'PORT' env var; defaults to 10000 for local if not set
+    port = int(os.environ.get('PORT', 10000))
+    # Debug is only true if we are NOT in production
+    app.run(host='0.0.0.0', port=port, debug=not _is_production)

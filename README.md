@@ -28,7 +28,7 @@ A web application that helps users identify, report, and learn about online scam
 | AI | Google Gemini API (`google-genai 1.68`) |
 | Frontend | HTML5 · Bootstrap 5 · Vanilla JS (one file per page) |
 | Rate Limiting | Flask-Limiter 3.5 |
-| Deployment | Vercel (WSGI via Gunicorn) |
+| Deployment | Render (WSGI via Gunicorn) |
 
 ---
 
@@ -40,7 +40,6 @@ ScamGuard AI INEGRATED/
 ├── app.py                          # App factory: env load, Flask init, shared objects,
 │                                   # blueprint registration, entry point
 ├── requirements.txt                # All Python dependencies (pinned versions)
-├── vercel.json                     # Vercel WSGI deployment config
 ├── start.bat                       # Windows one-click startup script
 ├── .env                            # Environment variables — never commit this file
 ├── .gitignore
@@ -148,8 +147,6 @@ ScamGuard AI INEGRATED/
 | `admin_users` | Admin accounts with hashed passwords and role assignments |
 
 Videos are hosted in Supabase Storage (`Videos` bucket) and served via CDN URL.
-
-> **Important:** The `ai_analysis` column in `reports` must be set to type **`jsonb`** in Supabase. If it is `text`, the admin dashboard will silently show no AI analysis (the code handles this with automatic JSON parsing as a fallback).
 
 ---
 
@@ -261,37 +258,13 @@ This means all times shown in the admin dashboard, verify results, and report co
 
 ---
 
-## Deployment (Vercel)
+## Deployment (Render)
 
 1. Push to GitHub
-2. Import the repo at [vercel.com](https://vercel.com)
-3. Add the following environment variables in the Vercel dashboard:
+2. Import the repo at [render.com](https://render.com)
+3. Add the following environment variables in the Rendet dashboard:
    - `SUPABASE_URL`
    - `SUPABASE_KEY`
    - `SECRET_KEY`
    - `GEMINI_API_KEY`
-4. Deploy — `vercel.json` already configures the WSGI entry point
-
----
-
-## Troubleshooting
-
-| Problem | Fix |
-|---|---|
-| App won't start | Ensure `.env` contains `SUPABASE_URL`, `SUPABASE_KEY`, and `GEMINI_API_KEY` |
-| AI analysis not appearing | Check `GEMINI_API_KEY` is valid and has remaining quota |
-| Admin portal shows no AI analysis | Set `ai_analysis` column type to `jsonb` in Supabase (not `text`) |
-| Wrong time shown | Timestamps are converted from UTC → PKT via `_to_pkt()` in `routes/api.py` |
-| Port already in use | Run `netstat -ano \| findstr :5000` then `taskkill /PID <PID> /F` |
-| Supabase 401 errors | Make sure you are using the **service role** key, not the anon key |
-
----
-
-## Recent Fixes (v1.1)
-
-| File | Fix |
-|---|---|
-| `routes/api.py` | `submitted_at` now stores UTC ISO format so Supabase can sort/compare correctly |
-| `routes/api.py` | Report file names and monthly stats counter now use timezone-aware datetimes |
-| `routes/admin_routes.py` | `ai_analysis` is parsed from JSON string → dict when Supabase returns it as text |
-| `static/js/report.js` | Users now see the full AI analysis (severity, advice, red flags, tips, authorities) after submitting a report |
+--
