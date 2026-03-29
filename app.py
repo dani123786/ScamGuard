@@ -1,15 +1,19 @@
 """
 ScamGuard AI — Flask application entry point.
-Optimized for Render Deployment.
+Optimized for Render Deployment with Port & Host fixes.
 """
 import os
 import warnings
+import logging
 from dotenv import load_dotenv
+from flask import Flask
 
-# Load local .env file if it exists (useful for local testing)
+# 1. Load environment variables
 load_dotenv()
 
-from flask import Flask
+# Setup basic logging for Render logs
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -42,6 +46,7 @@ if _is_production:
 else:
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['DEBUG'] = True
     print("[!] Development mode: Debugging active.")
 
 # ---------------------------------------------------------------------------
@@ -148,10 +153,14 @@ app.register_blueprint(admin_content)
 app.register_blueprint(analytics)
 
 # ---------------------------------------------------------------------------
-# Execution Entry Point (for local testing)
+# Execution Entry Point (Optimized for Render)
 # ---------------------------------------------------------------------------
 if __name__ == '__main__':
-    # Render sets 'PORT' env var; defaults to 10000 for local if not set
+    # CRITICAL: Render sets 'PORT' env var; defaults to 10000 for local.
+    # This prevents the "No open ports detected" error.
     port = int(os.environ.get('PORT', 10000))
-    # Debug is only true if we are NOT in production
+    
+    # CRITICAL: host='0.0.0.0' allows external access from Render's network.
+    # This fixes the "Port scan timeout" issue.
+    print(f"[+] ScamGuard launching on port {port}...")
     app.run(host='0.0.0.0', port=port, debug=not _is_production)
