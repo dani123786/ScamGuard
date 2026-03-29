@@ -129,9 +129,9 @@
   font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
 }
 .severity-CRITICAL { background: rgba(251,79,79,0.15);  color: #ff7070; border: 1px solid rgba(251,79,79,0.3); }
-.severity-HIGH     { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+.severity-HIGH      { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
 .severity-MEDIUM   { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
-.severity-LOW      { background: rgba(6,214,160,0.1);   color: var(--teal);   border: 1px solid rgba(6,214,160,0.2); }
+.severity-LOW       { background: rgba(6,214,160,0.1);   color: var(--teal);   border: 1px solid rgba(6,214,160,0.2); }
 .severity-UNKNOWN  { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
 
 /* Scam type tag */
@@ -226,7 +226,6 @@
 
 {% block content %}
 
-<!-- ── Admin header ──────────────────────────────────────── -->
 <div class="admin-header">
   <div class="container">
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
@@ -253,7 +252,6 @@
   </div>
   {% endif %}
 
-  <!-- ── Stat cards ──────────────────────────────────────── -->
   <div class="row g-3 mb-4 mt-4">
     <div class="col-6 col-md-3">
       <div class="stat-card blue">
@@ -293,7 +291,6 @@
     </div>
   </div>
 
-  <!-- ── Search & filter ──────────────────────────────────── -->
   <div class="admin-search-wrap">
     <div class="row g-2 align-items-center">
       <div class="col-md-5">
@@ -325,7 +322,6 @@
     </div>
   </div>
 
-  <!-- ── Reports list ─────────────────────────────────────── -->
   <div id="reportsContainer">
     {% if reports %}
       {% for report in reports %}
@@ -334,7 +330,6 @@
            data-lost="{{ report.lost_money or 'no' }}"
            data-search="{{ (report.description or '') ~ ' ' ~ (report.scam_type or '') ~ ' ' ~ (report.reporter_email or '') ~ ' ' ~ (report.scammer_contact or '') | lower }}">
 
-        <!-- Header -->
         <div class="report-card-header">
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <span class="scam-type-badge">
@@ -365,7 +360,6 @@
           </div>
         </div>
 
-        <!-- Body -->
         <div class="report-card-body">
           <div class="detail-grid">
             <div class="detail-item">
@@ -409,6 +403,7 @@
                 <span>{{ report.ai_analysis.community_impact }}</span>
               </div>
               {% endif %}
+              
               {% if report.ai_analysis.get('should_report_to_authorities') == 'YES' %}
               <div class="col-12">
                 <div class="authority-warn">
@@ -416,9 +411,13 @@
                   Should Report to Authorities
                 </div>
                 {% if report.ai_analysis.get('authorities_to_contact') %}
-                  {% for auth in report.ai_analysis.authorities_to_contact %}
-                    <span class="auth-badge">{{ auth }}</span>
-                  {% endfor %}
+                  {% if report.ai_analysis.authorities_to_contact is string %}
+                    <span class="auth-badge">{{ report.ai_analysis.authorities_to_contact }}</span>
+                  {% else %}
+                    {% for auth in report.ai_analysis.authorities_to_contact %}
+                      <span class="auth-badge">{{ auth }}</span>
+                    {% endfor %}
+                  {% endif %}
                 {% endif %}
               </div>
               {% endif %}
