@@ -35,6 +35,8 @@ document.addEventListener('DOMContentLoaded', function () {
 function displayVerifyResults(data) {
     const container = document.getElementById('resultsContainer');
     container.style.display = 'block';
+    const safeRecommendation = escapeHtml(data.recommendation || 'Exercise caution with unknown contacts.');
+    const safeQuery = escapeHtml(data.query || '');
 
     if (!data.found) {
         container.innerHTML =
@@ -43,8 +45,8 @@ function displayVerifyResults(data) {
             '<i class="fas fa-check-circle fa-3x text-success me-3"></i>' +
             '<div><h4 class="alert-heading mb-1">No Reports Found</h4>' +
             '<p class="mb-0">This contact has not been reported in our database</p></div></div><hr>' +
-            '<p class="mb-2"><strong>Searched:</strong> ' + escapeHtml(data.query) + '</p>' +
-            '<p class="mb-0"><i class="fas fa-info-circle"></i> ' + data.recommendation + '</p></div>';
+            '<p class="mb-2"><strong>Searched:</strong> ' + safeQuery + '</p>' +
+            '<p class="mb-0"><i class="fas fa-info-circle"></i> ' + safeRecommendation + '</p></div>';
         container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         return;
     }
@@ -58,8 +60,8 @@ function displayVerifyResults(data) {
         '<i class="fas ' + warningIcon + ' fa-3x me-3"></i>' +
         '<div><h4 class="alert-heading mb-1">⚠️ SCAMMER ALERT</h4>' +
         '<p class="mb-0">This contact has been reported ' + data.total_reports + ' time(s)</p></div></div><hr>' +
-        '<p class="mb-2"><strong>Contact:</strong> ' + escapeHtml(data.query) + '</p>' +
-        '<p class="mb-0">' + data.recommendation + '</p></div>' +
+        '<p class="mb-2"><strong>Contact:</strong> ' + safeQuery + '</p>' +
+        '<p class="mb-0">' + safeRecommendation + '</p></div>' +
         '<div class="detail-card mt-3"><h5 class="mb-3"><i class="fas fa-chart-bar"></i> Report Statistics</h5>' +
         '<div class="row">' +
         '<div class="col-md-6 mb-3"><div class="stat-box bg-light p-3 rounded"><h6 class="text-muted mb-1">Total Reports</h6><h3 class="mb-0 text-primary">' + data.total_reports + '</h3></div></div>' +
@@ -69,7 +71,7 @@ function displayVerifyResults(data) {
         '</div>' +
         (data.total_money_lost > 0 ? '<div class="alert alert-danger mt-3"><i class="fas fa-dollar-sign me-2"></i><strong>Total Money Lost:</strong> $' + data.total_money_lost.toLocaleString() + '</div>' : '') +
         '<p class="mb-2"><strong><i class="fas fa-calendar"></i> Most Recent Report:</strong> ' + formatDate(data.most_recent_report) + '</p>' +
-        '<p class="mb-0"><strong><i class="fas fa-phone"></i> Contact Methods Used:</strong> ' + data.contact_methods.join(', ') + '</p></div>';
+        '<p class="mb-0"><strong><i class="fas fa-phone"></i> Contact Methods Used:</strong> ' + (Array.isArray(data.contact_methods) ? data.contact_methods.map(escapeHtml).join(', ') : 'Unknown') + '</p></div>';
 
     if (data.sample_reports && data.sample_reports.length > 0) {
         html += '<div class="detail-card mt-3"><h5 class="mb-3"><i class="fas fa-file-alt"></i> Recent Reports</h5>';
@@ -79,8 +81,8 @@ function displayVerifyResults(data) {
                 '<div class="d-flex justify-content-between align-items-start mb-2">' +
                 '<h6 class="card-subtitle text-muted">Report #' + (index + 1) + '</h6>' +
                 '<span class="badge bg-' + (report.lost_money ? 'danger' : 'secondary') + '">' + (report.lost_money ? 'Money Lost' : 'No Money Lost') + '</span></div>' +
-                '<p class="mb-2"><strong>Type:</strong> ' + report.scam_type + '</p>' +
-                '<p class="mb-2"><strong>Method:</strong> ' + report.contact_method + '</p>' +
+                '<p class="mb-2"><strong>Type:</strong> ' + escapeHtml(report.scam_type) + '</p>' +
+                '<p class="mb-2"><strong>Method:</strong> ' + escapeHtml(report.contact_method) + '</p>' +
                 '<p class="mb-2"><strong>Date:</strong> ' + formatDate(report.date) + '</p>' +
                 '<p class="mb-0"><strong>Description:</strong> ' + escapeHtml(report.description) + '</p>' +
                 '</div></div>';

@@ -2,6 +2,31 @@
  * checker.js — AI Scam Checker logic.
  */
 
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
+}
+
+function normalizeText(value, fallback) {
+    const text = value == null ? '' : String(value).trim();
+    return text || fallback;
+}
+
+function normalizeList(value) {
+    if (Array.isArray(value)) {
+        return value.map(function (item) { return normalizeText(item, ''); }).filter(Boolean);
+    }
+    const text = normalizeText(value, '');
+    return text ? [text] : [];
+}
+
+function normalizeScore(value) {
+    const match = String(value == null ? '' : value).match(/-?\d+/);
+    const parsed = match ? parseInt(match[0], 10) : 0;
+    return Math.max(0, Math.min(100, Number.isNaN(parsed) ? 0 : parsed));
+}
+
 async function checkUrl() {
     const url = document.getElementById('url-content').value.trim();
     if (!url) { _showError('Please enter a URL to analyze.'); return; }
@@ -79,15 +104,23 @@ function displayResults(r) {
     const container = document.getElementById('results-container');
     const content = document.getElementById('results-content');
 
-    const score = r.risk_score || 0;
-    const level = r.risk_level || 'LOW';
+    const score = normalizeScore(r.risk_score);
+    const level = normalizeText(r.risk_level, 'UNKNOWN').toUpperCase();
+    const summary = escapeHtml(normalizeText(r.summary, 'No summary was returned.'));
+    const recommendation = escapeHtml(normalizeText(r.recommendation, 'Exercise caution and verify independently.'));
+    const scamType = escapeHtml(normalizeText(r.scam_type, 'Unable to analyse'));
+    const confidence = escapeHtml(normalizeText(r.confidence, 'LOW').toUpperCase());
+    const goal = escapeHtml(normalizeText(r.what_scammer_wants, 'N/A'));
+    const redFlags = normalizeList(r.red_flags);
+    const legitimateAspects = normalizeList(r.legitimate_aspects);
 
     const palette = {
         HIGH:   { stroke: '#fb4f4f', bg: 'rgba(251,79,79,0.1)',  border: 'rgba(251,79,79,0.25)',  text: '#fb4f4f', label: 'HIGH RISK' },
         MEDIUM: { stroke: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)', text: '#f59e0b', label: 'MEDIUM RISK' },
         LOW:    { stroke: '#06d6a0', bg: 'rgba(6,214,160,0.1)',  border: 'rgba(6,214,160,0.25)', text: '#06d6a0', label: 'LOW RISK' },
+        UNKNOWN:{ stroke: '#94a3b8', bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.25)', text: '#94a3b8', label: 'UNKNOWN RISK' },
     };
-    const p = palette[level] || palette.LOW;
+    const p = palette[level] || palette.UNKNOWN;
 
     const R = 40, circ = 2 * Math.PI * R;
     const offset = circ * (1 - score / 100);
@@ -103,38 +136,42 @@ function displayResults(r) {
         '<span style="font-size:0.65rem;color:#7a8aaa;margin-top:2px;">/ 100</span></div>';
 
     let flagsHTML = '';
-    if (r.red_flags && r.red_flags.length) {
+    if (redFlags.length) {
         flagsHTML = '<div class="res-section"><div class="res-section-title" style="color:#fb4f4f;"><i class="fas fa-exclamation-triangle"></i> Red Flags Detected</div>' +
-            '<ul class="res-list res-list-danger">' + r.red_flags.map(function(f){ return '<li><i class="fas fa-times-circle"></i>' + f + '</li>'; }).join('') + '</ul></div>';
+            '<ul class="res-list res-list-danger">' + redFlags.map(function(f){ return '<li><i class="fas fa-times-circle"></i>' + escapeHtml(f) + '</li>'; }).join('') + '</ul></div>';
     }
 
     let legitHTML = '';
-    if (r.legitimate_aspects && r.legitimate_aspects.length) {
+    if (legitimateAspects.length) {
         legitHTML = '<div class="res-section"><div class="res-section-title" style="color:#06d6a0;"><i class="fas fa-check-circle"></i> Legitimate Aspects</div>' +
-            '<ul class="res-list res-list-success">' + r.legitimate_aspects.map(function(f){ return '<li><i class="fas fa-check"></i>' + f + '</li>'; }).join('') + '</ul></div>';
+            '<ul class="res-list res-list-success">' + legitimateAspects.map(function(f){ return '<li><i class="fas fa-check"></i>' + escapeHtml(f) + '</li>'; }).join('') + '</ul></div>';
     }
 
     let goalHTML = '';
-    if (r.what_scammer_wants && r.what_scammer_wants !== 'N/A') {
+    if (goal !== 'N/A') {
         goalHTML = '<div class="res-section"><div class="res-section-title"><i class="fas fa-crosshairs"></i> What the Scammer Wants</div>' +
-            '<p class="res-text">' + r.what_scammer_wants + '</p></div>';
+            '<p class="res-text">' + goal + '</p></div>';
     }
 
     let domainHTML = '';
     if (r._is_url && r.domain_analysis) {
         var da = r.domain_analysis;
+        var domain = escapeHtml(normalizeText(da.domain, normalizeText(r.analyzed_url, 'N/A')));
+        var impersonating = normalizeText(da.is_impersonating, 'UNKNOWN').toUpperCase();
+        var brand = escapeHtml(normalizeText(da.impersonating_brand, 'None detected'));
+        var patterns = normalizeList(da.suspicious_patterns).map(escapeHtml);
         domainHTML = '<div class="res-section"><div class="res-section-title"><i class="fas fa-globe"></i> Domain Analysis</div>' +
             '<div class="res-kv">' +
-            '<span class="res-key">Domain</span><span class="res-val">' + (da.domain || 'N/A') + '</span>' +
-            '<span class="res-key">Impersonating</span><span class="res-val" style="color:' + (da.is_impersonating === 'YES' ? '#fb4f4f' : '#06d6a0') + '">' +
-            (da.is_impersonating === 'YES' ? da.impersonating_brand : 'None detected') + '</span>' +
-            (da.suspicious_patterns && da.suspicious_patterns.length ? '<span class="res-key">Patterns</span><span class="res-val">' + da.suspicious_patterns.join(', ') + '</span>' : '') +
+            '<span class="res-key">Domain</span><span class="res-val">' + domain + '</span>' +
+            '<span class="res-key">Impersonating</span><span class="res-val" style="color:' + (impersonating === 'YES' ? '#fb4f4f' : '#06d6a0') + '">' +
+            (impersonating === 'YES' ? brand : 'None detected') + '</span>' +
+            (patterns.length ? '<span class="res-key">Patterns</span><span class="res-val">' + patterns.join(', ') + '</span>' : '') +
             '</div></div>';
     }
 
-    var scamBadge = (r.scam_type && r.scam_type !== 'None Detected')
-        ? '<span class="res-badge"><i class="fas fa-tag"></i>' + r.scam_type + '</span>' +
-          '<span class="res-badge">Confidence: ' + (r.confidence || 'N/A') + '</span>'
+    var scamBadge = (normalizeText(r.scam_type, '') && normalizeText(r.scam_type, '') !== 'None Detected')
+        ? '<span class="res-badge"><i class="fas fa-tag"></i>' + scamType + '</span>' +
+          '<span class="res-badge">Confidence: ' + confidence + '</span>'
         : '<span class="res-badge" style="color:#06d6a0;border-color:rgba(6,214,160,0.2);"><i class="fas fa-shield-alt"></i> No Scam Detected</span>';
 
     content.innerHTML =
@@ -173,10 +210,10 @@ function displayResults(r) {
         scamBadge + '</div></div>' +
         '<div class="res-ring">' + ring + '</div></div>' +
         '<div class="res-body">' +
-        (r.summary ? '<div class="res-section"><div class="res-section-title"><i class="fas fa-brain"></i> AI Summary</div><p class="res-text">' + r.summary + '</p></div>' : '') +
+        '<div class="res-section"><div class="res-section-title"><i class="fas fa-brain"></i> AI Summary</div><p class="res-text">' + summary + '</p></div>' +
         flagsHTML + legitHTML + goalHTML + domainHTML +
         '<div class="res-section"><div class="res-section-title"><i class="fas fa-lightbulb"></i> Recommendation</div>' +
-        '<div class="res-recommendation">' + r.recommendation + '</div></div>' +
+        '<div class="res-recommendation">' + recommendation + '</div></div>' +
         '<div><button class="btn-reanalyze" onclick="document.getElementById(\'results-container\').style.display=\'none\'"><i class="fas fa-arrow-left"></i> Analyse Another</button></div>' +
         '</div></div>';
 

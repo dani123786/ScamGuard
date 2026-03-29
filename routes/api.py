@@ -1,8 +1,19 @@
 """Public API endpoints."""
 import os
+import json
+from urllib.parse import urlsplit
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify, make_response
-from data.checkers import analyze_with_ai, analyze_report_with_ai
+from data.checkers import (
+    analyze_with_ai,
+    analyze_report_with_ai,
+    analyze_url_with_ai,
+    normalize_analysis_result,
+    normalize_url_input,
+    _CONTENT_DEFAULTS,
+    _URL_DEFAULTS,
+    _robust_json_parse,
+)
 import routes.extensions as ext
 
 api = Blueprint('api', __name__)
@@ -45,6 +56,62 @@ _REPORTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'reports
 
 # Maximum content length accepted for AI analysis (characters)
 _MAX_AI_INPUT_LEN = 10_000
+
+
+def _mark_ai_status(result):
+    """Preserve fallback status instead of always claiming Gemini succeeded."""
+    ai_ok = bool(result.get('model_used')) and result.get('model_used') != 'none' and result.get('ai_powered', True) is not False
+    result['ai_powered'] = ai_ok
+    return result
+
+
+def _normalize_token(value):
+    return (value or '').strip().lower().replace('-', '_').replace(' ', '_')
+
+
+def _difficulty_variants(difficulty):
+    normalized = _normalize_token(difficulty)
+    variants = [normalized]
+    if normalized == 'hard':
+        variants.append('difficult')
+    elif normalized == 'difficult':
+        variants.append('hard')
+    return list(dict.fromkeys(v for v in variants if v))
+
+
+def _scam_type_variants(scam_type):
+    normalized = _normalize_token(scam_type)
+    variants = [
+        scam_type,
+        normalized,
+        normalized.replace('_', ' '),
+        normalized.replace('_', '-'),
+    ]
+    return list(dict.fromkeys(v for v in variants if v))
+
+
+def _fetch_quiz_rows(supabase_client, difficulty):
+    last_rows = []
+    for variant in _difficulty_variants(difficulty):
+        db_result = supabase_client.table('quiz_questions').select('*').eq('difficulty', variant).eq('is_active', True).execute()
+        rows = db_result.data or []
+        if rows:
+            return rows
+        last_rows = rows
+    return last_rows
+
+
+def _fetch_practice_rows(supabase_client, scam_type):
+    last_rows = []
+    for variant in _scam_type_variants(scam_type):
+        db_result = supabase_client.table('practice_quizzes').select(
+            'id, question_text, correct_answer_index, explanation, correct_count, incorrect_count, completion_count'
+        ).eq('scam_type', variant).eq('is_active', True).order('display_order').execute()
+        rows = db_result.data or []
+        if rows:
+            return rows
+        last_rows = rows
+    return last_rows
 
 
 # ---------------------------------------------------------------------------
@@ -136,8 +203,7 @@ def submit_quiz():
         return jsonify({'error': 'Database not available'}), 503
 
     try:
-        db_result = supabase_client.table('quiz_questions').select('*').eq('difficulty', difficulty).eq('is_active', True).execute()
-        db_questions = db_result.data or []
+        db_questions = _fetch_quiz_rows(supabase_client, difficulty)
     except Exception:
         return jsonify({'error': 'Failed to load questions'}), 503
 
@@ -207,10 +273,7 @@ def submit_practice_quiz():
 
     if supabase_client is not None:
         try:
-            db_result = supabase_client.table('practice_quizzes').select(
-                'id, question_text, correct_count, incorrect_count, completion_count'
-            ).eq('scam_type', scam_type).eq('is_active', True).order('display_order').execute()
-            db_questions = db_result.data or []
+            db_questions = _fetch_practice_rows(supabase_client, scam_type)
             for idx, ans in enumerate(answers):
                 if idx < len(db_questions):
                     q = db_questions[idx]
@@ -316,9 +379,6 @@ def get_practice_questions(scam_type):
 
 @api.route('/api/check', methods=['POST'])
 def check_scam():
-    import json
-    import re
-    
     data = request.get_json(force=True, silent=True) or {}
     check_type = data.get('type')
     content = data.get('content', '')
@@ -332,14 +392,11 @@ def check_scam():
         else:
             raw_result = analyze_with_ai(content, check_type)
 
-        # NEW: Robust JSON Parsing Fix
         if isinstance(raw_result, str):
-            # Remove any markdown code blocks the AI might have added
-            cleaned = re.sub(r'```json|```', '', raw_result).strip()
             try:
-                result = json.loads(cleaned)
+                result = _robust_json_parse(raw_result)
+                result.setdefault('model_used', 'raw_ai_response')
             except json.JSONDecodeError:
-                # If it's still broken, return a structured error instead of crashing
                 return jsonify({
                     'error': 'AI returned invalid formatting',
                     'ai_powered': False,
@@ -348,7 +405,8 @@ def check_scam():
         else:
             result = raw_result
 
-        result['ai_powered'] = True
+        result = normalize_analysis_result(result, _URL_DEFAULTS if check_type == 'url' else _CONTENT_DEFAULTS)
+        _mark_ai_status(result)
         return jsonify(result)
 
     except Exception as e:
@@ -374,10 +432,20 @@ def check_url():
         return jsonify({'error': 'URL too long'}), 413
 
     try:
-        from data.checkers import analyze_url_with_ai
-        result = analyze_url_with_ai(url)
-        result['ai_powered'] = True
+        normalized_url = normalize_url_input(url)
+        result = analyze_url_with_ai(normalized_url)
+        result = normalize_analysis_result(result, _URL_DEFAULTS)
+        if result.get('domain_analysis', {}).get('domain') in {'unknown', 'N/A', ''}:
+            result['domain_analysis']['domain'] = urlsplit(normalized_url).netloc
+        result['analyzed_url'] = result.get('analyzed_url', normalized_url)
+        _mark_ai_status(result)
         return jsonify(result)
+    except ValueError as e:
+        return jsonify({
+            'error': 'Invalid URL',
+            'details': str(e),
+            'ai_powered': False
+        }), 400
     except Exception as e:
         error_msg = str(e)
         print(f"URL analysis failed: {error_msg}")
@@ -406,7 +474,9 @@ def get_stats():
         return jsonify(stats)
 
     try:
-        result = supabase_client.table('reports').select('*').execute()
+        result = supabase_client.table('reports').select(
+            'scam_type, contact_method, amount, lost_money, submitted_at, ai_analysis'
+        ).execute()
         reports = result.data if result.data else []
 
         stats['database_connected'] = True
@@ -470,8 +540,14 @@ def verify_contact():
         }), 503
 
     try:
-        result = supabase_client.table('reports').select('*').execute()
-        reports = result.data if result.data else []
+        reports = []
+        for variant in _scam_type_variants(search_query):
+            result = supabase_client.table('reports').select(
+                'scam_type, contact_method, submitted_at, description, lost_money, amount, ai_analysis, scammer_contact'
+            ).ilike('scammer_contact', f'%{variant}%').execute()
+            reports = result.data if result.data else []
+            if reports:
+                break
 
         matching_reports = []
         search_lower = search_query.lower()

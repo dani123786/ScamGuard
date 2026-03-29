@@ -43,6 +43,29 @@ class ContentService:
         # and data/practice_quizzes.py with the appropriate data structures.
         self.fallback_enabled = False
 
+    @staticmethod
+    def _normalize_token(value: Optional[str]) -> str:
+        return (value or '').strip().lower().replace('-', '_').replace(' ', '_')
+
+    def _difficulty_variants(self, difficulty: str) -> List[str]:
+        normalized = self._normalize_token(difficulty)
+        variants = [normalized]
+        if normalized == 'hard':
+            variants.append('difficult')
+        elif normalized == 'difficult':
+            variants.append('hard')
+        return list(dict.fromkeys(v for v in variants if v))
+
+    def _scam_type_variants(self, scam_type: str) -> List[str]:
+        normalized = self._normalize_token(scam_type)
+        variants = [
+            scam_type,
+            normalized,
+            normalized.replace('_', ' '),
+            normalized.replace('_', '-'),
+        ]
+        return list(dict.fromkeys(v for v in variants if v))
+
     def get_quiz_questions(self, difficulty: str = 'easy', use_cache: bool = True) -> List[Dict[str, Any]]:
         """
         Retrieve quiz questions by difficulty level.
@@ -62,13 +85,16 @@ class ContentService:
                 return cached
 
         try:
-            result = self.db.table('quiz_questions') \
-                .select('*') \
-                .eq('difficulty', difficulty) \
-                .eq('is_active', True) \
-                .execute()
-
-            questions = self._transform_quiz_questions(result.data or [])
+            questions = []
+            for variant in self._difficulty_variants(difficulty):
+                result = self.db.table('quiz_questions') \
+                    .select('*') \
+                    .eq('difficulty', variant) \
+                    .eq('is_active', True) \
+                    .execute()
+                questions = self._transform_quiz_questions(result.data or [])
+                if questions:
+                    break
             self.cache.set(cache_key, questions, timeout=3600)
             return questions
 
@@ -101,10 +127,19 @@ class ContentService:
                 .eq('is_active', True)
 
             if scam_type:
-                query = query.eq('scam_type', scam_type)
+                result = None
+                for variant in self._scam_type_variants(scam_type):
+                    result = self.db.table('scam_definitions') \
+                        .select('*') \
+                        .eq('is_active', True) \
+                        .eq('scam_type', variant) \
+                        .execute()
+                    if result.data:
+                        break
+            else:
+                result = query.execute()
 
-            result = query.execute()
-            scams = self._transform_scam_definitions(result.data or [], scam_type)
+            scams = self._transform_scam_definitions((result.data or []) if result else [], scam_type)
             self.cache.set(cache_key, scams, timeout=3600)
             return scams
 
@@ -132,14 +167,17 @@ class ContentService:
                 return cached
 
         try:
-            result = self.db.table('practice_quizzes') \
-                .select('*') \
-                .eq('scam_type', scam_type) \
-                .eq('is_active', True) \
-                .order('display_order') \
-                .execute()
-
-            questions = self._transform_practice_quizzes(result.data or [])
+            questions = []
+            for variant in self._scam_type_variants(scam_type):
+                result = self.db.table('practice_quizzes') \
+                    .select('*') \
+                    .eq('scam_type', variant) \
+                    .eq('is_active', True) \
+                    .order('display_order') \
+                    .execute()
+                questions = self._transform_practice_quizzes(result.data or [])
+                if questions:
+                    break
             self.cache.set(cache_key, questions, timeout=3600)
             return questions
 

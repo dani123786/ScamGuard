@@ -2,6 +2,23 @@
  * report.js — Scam report form submission logic.
  * FIX: After submission, display the AI analysis result to the user.
  */
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
+}
+
+function buildSafeList(items) {
+    return Array.isArray(items) && items.length
+        ? `<ul class="mb-0 ps-3">${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+        : '<span class="text-muted">None detected</span>';
+}
+
+function safeText(value, fallback) {
+    const text = value == null ? '' : String(value).trim();
+    return escapeHtml(text || fallback);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('input[name="lost-money"]').forEach(function (radio) {
         radio.addEventListener('change', function (e) {
@@ -59,26 +76,27 @@ document.addEventListener('DOMContentLoaded', function () {
                         LOW:      '🟢'
                     }[ai.severity] || '⚪';
 
+                    const summary = safeText(ai.summary, 'We reviewed your report and found suspicious behavior that should be treated cautiously.');
+                    const victimAdvice = safeText(ai.victim_advice, 'Stop contact, save evidence, and verify through official channels.');
+                    const communityImpact = safeText(ai.community_impact, 'Your report helps warn other people about similar scam tactics.');
+                    const category = safeText(ai.scam_category, 'Suspicious Activity');
+
                     // Build common patterns list
-                    const patterns = Array.isArray(ai.common_patterns) && ai.common_patterns.length
-                        ? `<ul class="mb-0 ps-3">${ai.common_patterns.map(p => `<li>${p}</li>`).join('')}</ul>`
-                        : '<span class="text-muted">None detected</span>';
+                    const patterns = buildSafeList(ai.common_patterns);
 
                     // Build red flags list
-                    const flags = Array.isArray(ai.red_flags_identified) && ai.red_flags_identified.length
-                        ? `<ul class="mb-0 ps-3">${ai.red_flags_identified.map(f => `<li>${f}</li>`).join('')}</ul>`
-                        : '<span class="text-muted">None detected</span>';
+                    const flags = buildSafeList(ai.red_flags_identified);
 
                     // Build prevention tips list
                     const tips = Array.isArray(ai.prevention_tips) && ai.prevention_tips.length
-                        ? `<ul class="mb-0 ps-3">${ai.prevention_tips.map(t => `<li>${t}</li>`).join('')}</ul>`
-                        : '';
+                        ? `<ul class="mb-0 ps-3">${ai.prevention_tips.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`
+                        : buildSafeList([]);
 
                     // Authorities section
                     let authoritiesHtml = '';
                     if (ai.should_report_to_authorities === 'YES') {
                         const auths = Array.isArray(ai.authorities_to_contact) && ai.authorities_to_contact.length
-                            ? ai.authorities_to_contact.map(a => `<span class="badge bg-danger me-1">${a}</span>`).join('')
+                            ? ai.authorities_to_contact.map(a => `<span class="badge bg-danger me-1">${escapeHtml(a)}</span>`).join('')
                             : '';
                         authoritiesHtml = `
                             <div class="alert alert-danger py-2 mt-2 mb-0">
@@ -90,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     successEl.innerHTML = `
                         <div class="alert alert-success mb-4">
                             <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>Report Submitted Successfully</h5>
-                            <p class="mb-0">${result.message}</p>
+                            <p class="mb-0">${escapeHtml(result.message)}</p>
                         </div>
 
                         <div class="card border-0 shadow-sm mb-4" style="background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.2)!important;">
@@ -101,35 +119,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                 <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
                                     <span class="badge bg-${severityClass} fs-6 px-3 py-2">
-                                        ${severityIcon} ${ai.severity || 'UNKNOWN'} Risk
+                                        ${severityIcon} ${escapeHtml(ai.severity || 'UNKNOWN')} Risk
                                     </span>
-                                    ${ai.scam_category
-                                        ? `<span class="badge bg-secondary px-3 py-2">${ai.scam_category}</span>`
-                                        : ''}
+                                    <span class="badge bg-secondary px-3 py-2">${category}</span>
+                                </div>
+
+                                <div class="mb-3 p-3 rounded" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);">
+                                    <small class="text-muted d-block mb-1 text-uppercase fw-semibold" style="font-size:0.7rem;letter-spacing:.07em;">
+                                        <i class="fas fa-brain me-1"></i>Overall Analysis
+                                    </small>
+                                    <span style="font-size:.9rem;line-height:1.65;">${summary}</span>
                                 </div>
 
                                 <div class="row g-3">
-                                    ${ai.victim_advice ? `
                                     <div class="col-md-6">
                                         <div class="p-3 rounded" style="background:rgba(255,255,255,0.04);">
                                             <small class="text-muted d-block mb-1 text-uppercase fw-semibold" style="font-size:0.7rem;letter-spacing:.07em;">
                                                 <i class="fas fa-user-shield me-1"></i>Advice For You
                                             </small>
-                                            <span style="font-size:.875rem;">${ai.victim_advice}</span>
+                                            <span style="font-size:.875rem;">${victimAdvice}</span>
                                         </div>
-                                    </div>` : ''}
+                                    </div>
 
-                                    ${ai.community_impact ? `
                                     <div class="col-md-6">
                                         <div class="p-3 rounded" style="background:rgba(255,255,255,0.04);">
                                             <small class="text-muted d-block mb-1 text-uppercase fw-semibold" style="font-size:0.7rem;letter-spacing:.07em;">
                                                 <i class="fas fa-users me-1"></i>Community Impact
                                             </small>
-                                            <span style="font-size:.875rem;">${ai.community_impact}</span>
+                                            <span style="font-size:.875rem;">${communityImpact}</span>
                                         </div>
-                                    </div>` : ''}
+                                    </div>
 
-                                    ${ai.red_flags_identified && ai.red_flags_identified.length ? `
                                     <div class="col-md-6">
                                         <div class="p-3 rounded" style="background:rgba(255,255,255,0.04);">
                                             <small class="text-muted d-block mb-1 text-uppercase fw-semibold" style="font-size:0.7rem;letter-spacing:.07em;">
@@ -137,9 +157,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                             </small>
                                             <div style="font-size:.875rem;">${flags}</div>
                                         </div>
-                                    </div>` : ''}
+                                    </div>
 
-                                    ${ai.common_patterns && ai.common_patterns.length ? `
                                     <div class="col-md-6">
                                         <div class="p-3 rounded" style="background:rgba(255,255,255,0.04);">
                                             <small class="text-muted d-block mb-1 text-uppercase fw-semibold" style="font-size:0.7rem;letter-spacing:.07em;">
@@ -147,9 +166,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                             </small>
                                             <div style="font-size:.875rem;">${patterns}</div>
                                         </div>
-                                    </div>` : ''}
+                                    </div>
 
-                                    ${tips ? `
                                     <div class="col-12">
                                         <div class="p-3 rounded" style="background:rgba(255,255,255,0.04);">
                                             <small class="text-muted d-block mb-1 text-uppercase fw-semibold" style="font-size:0.7rem;letter-spacing:.07em;">
@@ -157,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                             </small>
                                             <div style="font-size:.875rem;">${tips}</div>
                                         </div>
-                                    </div>` : ''}
+                                    </div>
                                 </div>
 
                                 ${authoritiesHtml}
@@ -168,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     successEl.innerHTML = `
                         <div class="alert alert-success">
                             <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>Report Submitted Successfully</h5>
-                            <p class="mb-0">${result.message}</p>
+                            <p class="mb-0">${escapeHtml(result.message)}</p>
                         </div>`;
                 }
 

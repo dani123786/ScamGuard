@@ -46,12 +46,25 @@ except Exception as _rl_err:
 supabase_client = None
 try:
     from supabase import create_client
-    supabase_url = os.environ.get('SUPABASE_URL')
-    supabase_key = os.environ.get('SUPABASE_KEY')
+    supabase_url = (
+        os.environ.get('SUPABASE_URL') or
+        os.environ.get('NEXT_PUBLIC_SUPABASE_URL') or
+        os.environ.get('SUPABASE_PROJECT_URL')
+    )
+    supabase_key = (
+        os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or
+        os.environ.get('SUPABASE_KEY') or
+        os.environ.get('SUPABASE_ANON_KEY')
+    )
     if supabase_url and supabase_key:
         try:
             supabase_client = create_client(supabase_url, supabase_key)
-            print("[+] Supabase connected successfully!")
+            key_name = (
+                'SUPABASE_SERVICE_ROLE_KEY' if os.environ.get('SUPABASE_SERVICE_ROLE_KEY') else
+                'SUPABASE_KEY' if os.environ.get('SUPABASE_KEY') else
+                'SUPABASE_ANON_KEY'
+            )
+            print(f"[+] Supabase connected successfully using {key_name}")
         except Exception as e:
             print(f"[!] Supabase connection failed: {e}")
     else:
