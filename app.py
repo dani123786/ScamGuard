@@ -156,11 +156,14 @@ app.register_blueprint(analytics)
 # Execution Entry Point (Optimized for Render)
 # ---------------------------------------------------------------------------
 if __name__ == '__main__':
-    # Get port from environment or default to 10000
+    # 1. Get port immediately
     port = int(os.environ.get('PORT', 10000))
     
-    # Print FIRST so it shows up in Render logs immediately
-    print(f"[+] ScamGuard launching on port {port}...")
+    # 2. Print startup message immediately so Render logs capture it
+    print(f"--- ScamGuard AI Process Initializing ---")
+    print(f"[+] Targeting Port: {port}")
+    print(f"[+] Environment: {'Production' if _is_production else 'Development'}")
     
-    # Run the app ONCE
+    # 3. Run the application
+    # host '0.0.0.0' is required for Render to map the port
     app.run(host='0.0.0.0', port=port, debug=not _is_production)
