@@ -156,11 +156,11 @@ app.register_blueprint(analytics)
 # Execution Entry Point (Optimized for Render)
 # ---------------------------------------------------------------------------
 if __name__ == '__main__':
-    # CRITICAL: Render sets 'PORT' env var; defaults to 10000 for local.
-    # This prevents the "No open ports detected" error.
+    # Get port from environment or default to 10000
     port = int(os.environ.get('PORT', 10000))
     
-    # CRITICAL: host='0.0.0.0' allows external access from Render's network.
-    # This fixes the "Port scan timeout" issue.
+    # Print FIRST so it shows up in Render logs immediately
     print(f"[+] ScamGuard launching on port {port}...")
+    
+    # Run the app ONCE
     app.run(host='0.0.0.0', port=port, debug=not _is_production)
