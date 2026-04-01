@@ -1,270 +1,293 @@
-# ScamGuard — AI-Powered Scam Detection & Education Platform
+# ScamGuard — Online Scam Awareness & Protection System
 
-A web application that helps users identify, report, and learn about online scams using AI-powered analysis backed by a Supabase PostgreSQL database.
+![Status](https://img.shields.io/badge/status-production%20ready-brightgreen)
+![Python](https://img.shields.io/badge/python-3.8+-blue)
+![Flask](https://img.shields.io/badge/flask-2.3+-lightgrey)
+![AI](https://img.shields.io/badge/AI-Gemini%20Powered-orange)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+## 🔗 Live Demo
+
+**[https://scamguard-9x63.onrender.com](https://scamguard-9x63.onrender.com)**
+
+---
+
+## Overview
+
+ScamGuard is a full-stack, AI-powered web platform designed to educate users about online scams and give them practical tools to identify, verify, and report digital threats. Powered by **Google Gemini AI**, it goes beyond static education — offering real-time scam analysis, a community-driven contact verification database, an interactive quiz system, and an admin dashboard for managing reports.
+
+---
+
+## Problem Statement
+
+Online scams are a growing global threat, costing individuals and businesses billions of dollars annually. According to the FBI's Internet Crime Report, losses from cybercrime exceeded **$10 billion in 2023** alone. The problem is getting worse:
+
+- **Rising sophistication** — scammers use AI, deepfakes, and social engineering to deceive victims
+- **Lack of awareness** — many people don't recognise warning signs until it's too late
+- **Limited education** — traditional awareness methods are passive and forgettable
+- **Accessibility gap** — scam education resources are often scattered and hard to navigate
+
+Victims often feel embarrassed to report scams, allowing criminals to continue targeting others. ScamGuard addresses this with an accessible, interactive, AI-powered platform that educates people *before* they become victims.
 
 ---
 
 ## Features
 
-- **AI Scam Checker** — Analyze emails, messages, and URLs using Google Gemini AI
-- **Scammer Verification** — Check if an email or phone number has been reported as a scammer
-- **Scam Reporting** — Submit reports with full AI analysis shown to the user instantly
-- **Educational Content** — 10 scam types with videos (Supabase Storage), warning signs, prevention tips, and practice quizzes
-- **Knowledge Quiz** — Easy, medium, and difficult levels with instant feedback
-- **Live Statistics** — Real-time dashboard of community reports
-- **Admin Panel** — Password-protected interface to manage all content and view reports
-- **Pakistan Standard Time (PKT)** — All timestamps stored in UTC and displayed in PKT (UTC+5) throughout the system
-- **Fully Responsive** — Works on desktop, tablet, and mobile
+### 🤖 AI Scam Checker (Gemini AI)
+Paste any email, message, or URL and receive an instant, context-aware analysis powered by Google Gemini AI. Unlike keyword-based tools, the AI understands intent, tone, and structure — detecting phishing, brand impersonation, investment fraud, social engineering, and more.
+
+### 🔍 Verify Contact
+Search a community-reported database of known scammer emails and phone numbers. If a contact has been reported before, users see detailed history and risk statistics — helping them make informed decisions before engaging.
+
+### 📚 Scam Awareness (10 Scam Types)
+Comprehensive educational modules covering:
+- Phishing Scams
+- Cryptocurrency Scams
+- Investment & Ponzi Schemes
+- Tech Support Scams
+- E-Commerce & Online Shopping Scams
+- Identity Theft & Data Breach
+- Lottery & Prize Scams
+- Employment & Job Scams
+- Social Media & Impersonation
+- Deepfake Scams
+
+Each module includes real-world examples, red-flag warning signs, prevention tips, and an educational video.
+
+### 🧠 Interactive Quiz System
+- **3 difficulty levels** — Easy, Medium, Difficult
+- **60 total questions** — 20 per difficulty
+- **100 practice questions** — 10 per scam type
+- Personalised results with instant feedback and explanations
+
+### 📝 Scam Reporting (3-Step Form)
+A guided multi-step reporting form that captures scam type, contact method, incident date, description, scammer contact info, financial loss, and optional reporter email. Reports are saved to the community database and help others stay protected.
+
+### 📊 Live Dashboard Stats
+The homepage displays real-time statistics from the database:
+- Total community reports
+- High-risk detections
+- Total money lost reported
+- Reports this month
+- Most common scam type and contact method
+
+### 🛡️ Admin Dashboard
+A protected admin panel for managing submitted reports, viewing community data, and monitoring platform activity.
+
+### 📖 Resources
+Verified links and official contacts for reporting scams to authorities such as the FTC, IC3, and others.
 
 ---
 
-## Technology Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Backend | Python 3.12 · Flask 3.0 (Blueprint architecture) |
-| Database | Supabase (PostgreSQL) |
-| File Storage | Supabase Storage (educational videos) |
-| AI | Google Gemini API (`google-genai 1.68`) |
-| Frontend | HTML5 · Bootstrap 5 · Vanilla JS (one file per page) |
-| Rate Limiting | Flask-Limiter 3.5 |
-| Deployment | Render (WSGI via Gunicorn) |
+| Backend | Python 3.8+, Flask 2.3+ |
+| AI | Google Gemini API |
+| Frontend | HTML5, CSS3, Bootstrap 5, Font Awesome |
+| Database | SQLite / configured DB |
+| Deployment | Render |
+| Version Control | Git, GitHub |
 
 ---
 
 ## Project Structure
 
 ```
-ScamGuard AI INEGRATED/
-│
-├── app.py                          # App factory: env load, Flask init, shared objects,
-│                                   # blueprint registration, entry point
-├── requirements.txt                # All Python dependencies (pinned versions)
-├── start.bat                       # Windows one-click startup script
-├── .env                            # Environment variables — never commit this file
+scamguard/
+├── app.py                      # Main Flask application & routes
+├── config.py                   # Configuration and environment variables
+├── requirements.txt            # Python dependencies
+├── vercel.json                 # (legacy) Vercel deployment config
 ├── .gitignore
-└── README.md
-│
-├── routes/                         # Flask Blueprints — one file per responsibility
+├── README.md
+├── data/                       # Application data modules
 │   ├── __init__.py
-│   ├── extensions.py               # Shared module-level objects: supabase_client,
-│   │                               # content_service, cache_manager, auth helpers,
-│   │                               # cache invalidation helpers
-│   ├── public.py                   # Public page routes:
-│   │                               #   GET /  · /awareness  · /awareness/<scam_type>
-│   │                               #   GET /quiz  · /checker  · /verify
-│   │                               #   GET /resources  · /report
-│   ├── api.py                      # Public JSON API — all /api/* endpoints
-│   │                               # Handles PKT timezone conversion (_to_pkt),
-│   │                               # AI report analysis, scam checker, stats
-│   ├── auth_routes.py              # Admin authentication:
-│   │                               #   GET  /admin/login
-│   │                               #   POST /admin/auth/login · /admin/auth/logout
-│   │                               #   GET  /admin/auth/me · /admin/auth/csrf-token
-│   ├── admin_routes.py             # Admin content management (auth-protected):
-│   │                               #   GET  /admin/reports  (reports dashboard)
-│   │                               #   CRUD /admin/quiz-questions
-│   │                               #   CRUD /admin/scam-definitions
-│   │                               #   CRUD /admin/practice-quizzes
-│   │                               #   POST /admin/practice-quizzes/reorder
-│   │                               #   POST /admin/practice-quizzes/<id>/copy-to-quiz
-│   │                               #   POST /admin/quiz-questions/bulk
-│   └── analytics_routes.py        # Analytics & admin tools (auth-protected):
-│                                   #   GET  /admin/analytics
-│                                   #   GET  /api/analytics/export
-│                                   #   GET  /admin/audit-log
-│                                   #   GET  /admin/export/json · /admin/export/csv
-│                                   #   POST /admin/import
-│                                   #   GET  /admin/content
-│                                   #   POST /admin/rollback
-│                                   #   GET  /admin/cache/status
-│                                   #   POST /admin/cache/clear
-│
-├── services/                       # Business-logic layer (no Flask dependencies)
-│   ├── __init__.py
-│   ├── content_service.py          # All database read queries with TTL caching;
-│   │                               # get_quiz_questions, get_scam_definitions,
-│   │                               # get_practice_quizzes
-│   ├── content_validator.py        # Input validation for quiz questions, scam
-│   │                               # definitions, and practice quizzes
-│   ├── audit_logger.py             # Logs create/update/delete to content_versions
-│   │                               # table with before/after snapshots
-│   ├── auth.py                     # Admin session auth, RBAC role checks,
-│   │                               # CSRF token generation & validation,
-│   │                               # password hashing (Werkzeug)
-│   ├── cache_manager.py            # Lightweight in-memory TTL cache
-│   │                               # (SimpleCacheManager)
-│   └── rate_limiter.py             # Flask-Limiter initialisation
-│
-├── data/                           # AI analysis layer
-│   ├── __init__.py
-│   └── checkers.py                 # Google Gemini API integration:
-│                                   #   analyze_with_ai()         — email / message
-│                                   #   analyze_url_with_ai()     — URL phishing check
-│                                   #   analyze_report_with_ai()  — submitted report
-│
-├── templates/                      # Jinja2 HTML templates
-│   ├── base.html                   # Base layout: sidebar nav, Bootstrap, font imports
-│   ├── index.html                  # Home page with live community stats
-│   ├── awareness.html              # All 10 scam types overview grid
-│   ├── scam_detail.html            # Individual scam page: video + practice quiz
-│   ├── quiz.html                   # Main knowledge quiz (easy / medium / difficult)
-│   ├── checker.html                # AI scam checker (email / message / URL tabs)
-│   ├── report.html                 # Report a scam form + AI analysis result panel
-│   ├── verify.html                 # Verify a scammer contact
-│   ├── resources.html              # Official resources and external links
-│   ├── admin.html                  # Admin reports dashboard with search & filters
-│   └── admin_login.html            # Admin login page
-│
+│   ├── scams.py                # Scam awareness content & descriptions
+│   ├── practice_quizzes.py     # 100 practice quiz questions (10 per scam type)
+│   ├── quiz_questions.py       # 60 main quiz questions (easy/medium/difficult)
+│   └── checkers.py             # Scam check logic (legacy rule-based)
 ├── static/
 │   ├── css/
-│   │   └── style.css               # Full responsive application stylesheet
-│   └── js/                         # One JavaScript file per page
-│       ├── sidebar.js              # Sidebar toggle — loaded on every page via base.html
-│       ├── stats.js                # Animated live stats counter — index.html
-│       ├── quiz.js                 # Quiz engine: question flow, scoring — quiz.html
-│       ├── checker.js              # AI checker: tab switching, result cards — checker.html
-│       ├── practice_quiz.js        # Practice quiz engine — scam_detail.html
-│       ├── report.js               # Report form + AI analysis result display — report.html
-│       ├── verify.js               # Contact verification results — verify.html
-│       └── admin_login.js          # Admin login form handler — admin_login.html
-│
-└── reports/                        # Local flat-file backup of submitted scam reports
-    └── .gitkeep                    # Keeps the empty folder tracked in git
+│   │   └── style.css           # Responsive styles
+│   └── videos/                 # 10 educational scam awareness videos
+├── templates/                  # Jinja2 HTML templates
+│   ├── base.html               # Base layout with sidebar navigation
+│   ├── index.html              # Homepage with live stats
+│   ├── awareness.html          # Scam type overview grid
+│   ├── scam_detail.html        # Individual scam detail + practice quiz
+│   ├── quiz.html               # Main quiz (3 difficulty levels)
+│   ├── checker.html            # AI Scam Checker (Gemini)
+│   ├── verify.html             # Verify Contact tool
+│   ├── report.html             # 3-step scam reporting form
+│   ├── resources.html          # External resources & authorities
+│   └── admin/                  # Admin dashboard templates
+├── reports/                    # Locally saved report backups
+├── tests/
+│   └── test_app.py             # Unit tests
+└── docs/                       # Documentation
 ```
 
 ---
 
-## Database (Supabase)
+## Quick Start
 
-| Table | Description |
-|---|---|
-| `reports` | User-submitted scam reports. Stores `scam_type`, `description`, `scammer_contact`, `ai_analysis` (JSONB), `submitted_at` (UTC ISO timestamp) |
-| `quiz_questions` | 60 knowledge quiz questions across easy / medium / difficult |
-| `scam_definitions` | 10 scam types with descriptions, warning signs, prevention tips, and view counts |
-| `practice_quizzes` | 10 practice questions per scam type (100 total), ordered by `display_order` |
-| `content_versions` | Full audit trail — every create / update / delete is logged with before/after snapshots |
-| `admin_users` | Admin accounts with hashed passwords and role assignments |
+### Prerequisites
 
-Videos are hosted in Supabase Storage (`Videos` bucket) and served via CDN URL.
+- Python 3.8 or higher
+- pip (Python package manager)
+- A Google Gemini API key
 
----
+### Installation
 
-## Setup & Running
-
-### 1. Clone and install dependencies
-
+**1. Clone the repository**
 ```bash
-git clone <your-repo-url>
-cd "ScamGuard AI INEGRATED"
+git clone https://github.com/dani123786/ScamGuard.git
+cd ScamGuard
+```
+
+**2. Create a virtual environment**
+```bash
+python -m venv venv
+source venv/bin/activate        # On Windows: venv\Scripts\activate
+```
+
+**3. Install dependencies**
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure `.env`
+**4. Set environment variables**
 
-Copy the template below and fill in your own values:
-
+Create a `.env` file in the project root:
 ```env
-# Flask
-SECRET_KEY=your-long-random-secret-key
-FLASK_ENV=development
-PORT=5000
-
-# Supabase — Project Settings > API
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-service-role-key
-
-# Google Gemini AI
-GEMINI_API_KEY=your-gemini-api-key
-
-# Content source: auto | database-only | file-only
-DATABASE_MODE=auto
+GEMINI_API_KEY=your_gemini_api_key_here
+SECRET_KEY=your_secret_key_here
 ```
 
-> ⚠️ Never commit `.env` to version control. It is already listed in `.gitignore`.
-
-### 3. Run
-
+**5. Run the application**
 ```bash
-# Windows (double-click or run):
-start.bat
-
-# Or directly:
 python app.py
 ```
 
-Open `http://localhost:5000`
+**6. Open in browser**
+```
+http://127.0.0.1:5000
+```
 
 ---
 
-## Admin Access
+## Deployment
 
-Navigate to `http://localhost:5000/admin/login`
+### Deploy to Render (Recommended)
 
-All `/admin/*` routes are session-protected. Unauthenticated requests are automatically redirected to the login page. Role-based access control (RBAC) restricts write operations (`editor` and `admin` roles only).
+1. Push your code to GitHub
+2. Go to [render.com](https://render.com) and create a new **Web Service**
+3. Connect your GitHub repository
+4. Set build command: `pip install -r requirements.txt`
+5. Set start command: `gunicorn app:app`
+6. Add environment variables (`GEMINI_API_KEY`, `SECRET_KEY`) in the Render dashboard
+7. Deploy
 
----
+### Deploy to Heroku
 
-## API Reference
+```bash
+heroku create your-app-name
+heroku config:set GEMINI_API_KEY=your_key
+heroku config:set SECRET_KEY=your_secret
+git push heroku main
+```
 
-### Public Endpoints
+### Deploy to PythonAnywhere
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/stats` | Live community statistics (total reports, high-risk count, top scam type) |
-| `GET` | `/api/scams` | All active scam definitions |
-| `GET` | `/api/scams/<scam_type>` | Single scam definition (also increments view count) |
-| `GET` | `/api/quiz/questions?difficulty=easy` | Quiz questions for a given difficulty |
-| `POST` | `/api/quiz/submit` | Submit quiz answers, returns score + explanations |
-| `GET` | `/api/practice/<scam_type>` | Practice questions for a scam type |
-| `POST` | `/api/practice/submit` | Submit practice answers, tracks completion stats |
-| `POST` | `/api/check` | AI analysis of email / message / url content |
-| `POST` | `/api/check/url` | Dedicated URL phishing analysis |
-| `POST` | `/api/report` | Submit a scam report; returns AI analysis to the user |
-| `POST` | `/api/verify` | Check if a contact has been previously reported |
-
-### Admin Endpoints (auth required)
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/admin/reports` | Reports dashboard (HTML) |
-| `GET/POST` | `/admin/quiz-questions` | List / create quiz questions |
-| `PUT/DELETE` | `/admin/quiz-questions/<id>` | Update / soft-delete a question |
-| `POST` | `/admin/quiz-questions/bulk` | Bulk delete or change difficulty |
-| `GET/POST` | `/admin/scam-definitions` | List / create scam definitions |
-| `PUT/DELETE` | `/admin/scam-definitions/<id>` | Update / soft-delete a definition |
-| `GET/POST` | `/admin/practice-quizzes` | List / create practice quizzes |
-| `PUT/DELETE` | `/admin/practice-quizzes/<id>` | Update / soft-delete a quiz |
-| `POST` | `/admin/practice-quizzes/reorder` | Update display order |
-| `POST` | `/admin/practice-quizzes/<id>/copy-to-quiz` | Copy to quiz_questions table |
-| `GET` | `/admin/analytics` | Analytics dashboard (HTML) |
-| `GET` | `/admin/audit-log` | Audit trail of all content changes |
-| `GET` | `/admin/export/json` | Export all content as JSON |
-| `GET` | `/admin/export/csv` | Export reports as CSV |
-| `POST` | `/admin/import` | Import content from JSON |
-| `POST` | `/admin/rollback` | Roll back a content change |
-| `GET/POST` | `/admin/cache/status` · `/admin/cache/clear` | Cache management |
+1. Upload files to PythonAnywhere
+2. Set up a virtual environment and install requirements
+3. Configure the WSGI file to point to `app.py`
+4. Add environment variables in the dashboard
+5. Reload the web app
 
 ---
 
-## Timezone Handling (PKT)
+## Responsive Design
 
-All timestamps in this system follow a consistent two-step approach:
+ScamGuard is fully responsive and works on all devices:
 
-1. **Storage** — `submitted_at` is saved as a UTC ISO 8601 string (e.g. `2026-03-28T08:30:00+00:00`) so Supabase can sort and filter correctly.
-2. **Display** — The `_to_pkt()` helper in `routes/api.py` converts any UTC timestamp to **Pakistan Standard Time (UTC+5)** before it is rendered in the admin portal or returned in API responses.
-
-This means all times shown in the admin dashboard, verify results, and report confirmations are in PKT.
+- **Smartphones** (iOS & Android) — touch-optimised, slide-in sidebar, full-width buttons
+- **Tablets** — adaptive layout with readable font sizes
+- **Laptops & Desktops** — always-visible sidebar, keyboard shortcut `Ctrl+B` to toggle, multi-column layouts, hover effects
 
 ---
 
-## Deployment (Render)
+## Content Statistics
 
-1. Push to GitHub
-2. Import the repo at [render.com](https://render.com)
-3. Add the following environment variables in the Rendet dashboard:
-   - `SUPABASE_URL`
-   - `SUPABASE_KEY`
-   - `SECRET_KEY`
-   - `GEMINI_API_KEY`
---
+| Category | Count |
+|---|---|
+| Scam types covered | 10 |
+| Educational videos | 10 |
+| Practice quiz questions | 100 |
+| Main quiz questions | 60 |
+| Quiz difficulty levels | 3 |
+| Detection tools | 3 (AI Checker, Verify Contact, Report) |
+
+---
+
+## Testing
+
+```bash
+python -m pytest tests/
+```
+
+To test responsiveness, open browser DevTools (`F12`), toggle device mode (`Ctrl+Shift+M`), and test at different screen sizes.
+
+---
+
+## Roadmap
+
+- [ ] User authentication and personalised progress tracking
+- [ ] Real-time AI-powered scam news feed
+- [ ] Mobile app (iOS & Android)
+- [ ] Multi-language support
+- [ ] Enhanced admin analytics dashboard
+- [ ] Public API for third-party integrations
+- [ ] Browser extension for real-time URL checking
+
+---
+
+## Contributing
+
+Contributions are welcome!
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/YourFeature`)
+3. Commit your changes (`git commit -m 'Add YourFeature'`)
+4. Push to the branch (`git push origin feature/YourFeature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
+
+## Acknowledgements
+
+- [Google Gemini AI](https://ai.google.dev/) — for powering the scam checker
+- [Bootstrap 5](https://getbootstrap.com/) — for the responsive UI framework
+- [Font Awesome](https://fontawesome.com/) — for icons
+- [Flask](https://flask.palletsprojects.com/) — for the web framework
+- [Render](https://render.com/) — for hosting
+
+---
+
+## Support
+
+For support, please open an issue in the [GitHub repository](https://github.com/dani123786/ScamGuard/issues).
+
+---
+
+**Made with care for online safety and scam awareness.**
+
+**Version:** 2.0.0 | **Status:** Production Ready | **Last Updated:** April 2026
