@@ -1,12 +1,14 @@
 """
 ScamGuard AI — Flask application entry point.
 Optimized for Render Deployment with Port & Host fixes.
+Now with WhiteNoise for Static File serving.
 """
 import os
 import warnings
 import logging
 from dotenv import load_dotenv
 from flask import Flask
+from whitenoise import WhiteNoise  # <-- ADDED THIS
 
 # 1. Load environment variables
 load_dotenv()
@@ -16,6 +18,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+# --- WHITE NOISE CONFIGURATION (FIXES STYLING/CSS) ---
+# This tells Render to serve files from your 'static' folder automatically.
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/') 
 
 # ---------------------------------------------------------------------------
 # Secret key — Set 'SECRET_KEY' in Render Dashboard for security
